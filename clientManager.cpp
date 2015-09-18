@@ -9,10 +9,10 @@ namespace {
 struct ImplementationDetails {
     ImplementationDetails() : clientManager(config) {}
     tell::store::ClientConfig config;
-    tell::store::ClientManager clientManager;
+    tell::store::ClientManager<void> clientManager;
 };
 
-// helper functions
+} // impl
 
 crossbow::string to_string(JNIEnv* env, jstring str) {
     auto ptr = env->GetStringUTFChars(str, nullptr);
@@ -20,8 +20,6 @@ crossbow::string to_string(JNIEnv* env, jstring str) {
     env->ReleaseStringUTFChars(str, ptr);
     return ptr;
 }
-
-} // impl
 
 jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env, jobject self, jstring commitManager, jstring tellStore) {
     auto res = new ImplementationDetails();

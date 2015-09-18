@@ -16,14 +16,21 @@ endmacro(javah)
 include(UseJava)
 set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
 set(CMAKE_JNI_TARGET TRUE)
-add_jar(telljava java/src/ch/ethz/tell/ClientManager.java VERSION 1.0)
-javah(telljava "ch.ethz.tell.ClientManager")
+add_jar(telljava
+    java/src/ch/ethz/tell/ClientManager.java
+    java/src/ch/ethz/tell/Schema.java
+    VERSION 1.0)
+javah(telljava "ch.ethz.tell.ClientManager" "ch.ethz.tell.Schema")
 
 find_package(JNI REQUIRED)
 find_package(TellStore REQUIRED)
 find_package(Crossbow REQUIRED)
 
-add_library(telljavaimpl SHARED telljava.cpp)
+set(impl_SRCS
+        schema.cpp
+        clientManager.cpp)
+
+add_library(telljavaimpl SHARED ${impl_SRCS})
 add_dependencies(telljavaimpl javah_telljava)
 target_link_libraries(telljavaimpl PRIVATE ${JNI_LIBRARIES})
 target_link_libraries(telljavaimpl PRIVATE tellstore-client)
