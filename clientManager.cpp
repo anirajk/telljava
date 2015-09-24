@@ -21,6 +21,11 @@ crossbow::string to_string(JNIEnv* env, jstring str) {
     return ptr;
 }
 
+jlong Java_ch_ethz_tell_ClientManager_getClientManagerPtr(JNIEnv*, jclass, jlong impl) {
+    auto o = reinterpret_cast<ImplementationDetails*>(impl);
+    return reinterpret_cast<jlong>(&o->clientManager);
+}
+
 jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env, jobject self, jstring commitManager, jstring tellStore) {
     auto res = new ImplementationDetails();
     auto cM = to_string(env, commitManager);

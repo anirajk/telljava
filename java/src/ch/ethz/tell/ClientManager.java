@@ -3,15 +3,24 @@ package ch.ethz.tell;
 public class ClientManager {
     private long mImplPtr;
 
+    private static native long getClientManagerPtr(long implPtr);
+    final long getClientManagerPtr() {
+        return getClientManagerPtr(mImplPtr);
+    }
+
     public ClientManager(String commitManager, String tellStore) {
         mImplPtr = init(commitManager, tellStore);
+    }
+
+    public final long getImplPtr() {
+        return mImplPtr;
     }
 
     private native long init(String commitManager, String tellStore);
 
     private native void shutdown(long ptr);
 
-    public void close() {
+    public final void close() {
         shutdown(mImplPtr);
     }
 
@@ -30,59 +39,59 @@ public class ClientManager {
     private native void setSendQueueLengthImpl(long ptr, long value);
     private native long getSendQueueLengthImpl(long ptr);
 
-    void setMaxPendingResponses(long value) {
+    public final void setMaxPendingResponses(long value) {
         setMaxPendingResponsesImpl(mImplPtr, value);
     }
 
-    long getMaxPendingResponses() {
+    public final long getMaxPendingResponses() {
         return getMaxPendingResponsesImpl(mImplPtr);
     }
 
-    void setNumNetworkThreads(long value) {
+    public final void setNumNetworkThreads(long value) {
         setNumNetworkThreadsImpl(mImplPtr, value);
     }
 
-    long getNumNetworkThreads() {
+    public final long getNumNetworkThreads() {
         return getNumNetworkThreadsImpl(mImplPtr);
     }
 
-    public void setReceiveBufferCount(long value) {
+    public final void setReceiveBufferCount(long value) {
         setReceiveBufferCountImpl(mImplPtr, value);
     }
 
-    public long getReceiveBufferCount() {
+    public final long getReceiveBufferCount() {
         return getReceiveBufferCountImpl(mImplPtr);
     }
 
-    public void setSendBufferCount(long value) {
+    public final void setSendBufferCount(long value) {
         setSendBufferCountImpl(mImplPtr, value);
     }
 
-    public long getSendBufferCount() {
+    public final long getSendBufferCount() {
         return getSendBufferCountImpl(mImplPtr);
     }
 
-    public void setBufferLength(long value) {
+    public final void setBufferLength(long value) {
         setBufferLengthImpl(mImplPtr, value);
     }
 
-    public long getBufferLength() {
+    public final long getBufferLength() {
         return getBufferLengthImpl(mImplPtr);
     }
 
-    public void setCompletionQueueLength(long value) {
+    public final void setCompletionQueueLength(long value) {
         setCompletionQueueLengthImpl(mImplPtr, value);
     }
 
-    public long getCompletionQueueLength() {
+    public final long getCompletionQueueLength() {
         return getCompletionQueueLengthImpl(mImplPtr);
     }
 
-    public void setSendQueueLength(long value) {
+    public final void setSendQueueLength(long value) {
         setSendQueueLengthImpl(mImplPtr, value);
     }
 
-    public long getSendQueueLength() {
+    public final long getSendQueueLength() {
         return getSendQueueLengthImpl(mImplPtr);
     }
 }

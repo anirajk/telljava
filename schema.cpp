@@ -28,7 +28,7 @@ namespace {
 jintArray toIntArray(JNIEnv* env, const std::vector<tell::store::Field>& fields) {
     auto res = env->NewIntArray(fields.size());
     std::unique_ptr<jint[]> tmp(new jint[fields.size()]);
-    for (int i = 0; i < fields.size(); ++i) {
+    for (unsigned i = 0; i < fields.size(); ++i) {
         tmp[i] = crossbow::to_underlying(fields[i].type());
     }
     env->SetIntArrayRegion(res, 0, fields.size(), tmp.get());
