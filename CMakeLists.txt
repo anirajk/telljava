@@ -14,12 +14,15 @@ macro(javah JAVA_TARGET)
 endmacro(javah)
 
 include(UseJava)
-set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.7" "-target" "1.7")
+set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(telljava
     java/src/ch/ethz/tell/ClientManager.java
     java/src/ch/ethz/tell/Schema.java
     java/src/ch/ethz/tell/Transaction.java
+    java/src/ch/ethz/tell/PredicateType.java
+    java/src/ch/ethz/tell/ScanQuery.java
+    java/src/ch/ethz/tell/ScanIterator.java
     VERSION 1.0)
 javah(telljava
     "ch.ethz.tell.ClientManager"

@@ -23,4 +23,7 @@ public class Transaction {
         abort(mImpl);
     }
 
+    public ScanIterator scan(ScanQuery query, String tableName) {
+        return new ScanIterator();
+    }
 }
