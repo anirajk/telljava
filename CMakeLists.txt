@@ -14,7 +14,7 @@ macro(javah JAVA_TARGET)
 endmacro(javah)
 
 include(UseJava)
-set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8" "-XDignore.symbol.file")
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(telljava
     java/src/ch/ethz/tell/ClientManager.java
@@ -23,11 +23,15 @@ add_jar(telljava
     java/src/ch/ethz/tell/PredicateType.java
     java/src/ch/ethz/tell/ScanQuery.java
     java/src/ch/ethz/tell/ScanIterator.java
+    java/src/ch/ethz/tell/Pair.java
+    java/src/ch/ethz/tell/Unsafe.java
+    java/src/ch/ethz/tell/UnsafeException.java
     VERSION 1.0)
 javah(telljava
     "ch.ethz.tell.ClientManager"
     "ch.ethz.tell.Schema"
-    "ch.ethz.tell.Transaction")
+    "ch.ethz.tell.Transaction"
+    "ch.ethz.tell.ScanIterator")
 
 find_package(JNI REQUIRED)
 find_package(TellStore REQUIRED)

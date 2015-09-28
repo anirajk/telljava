@@ -22,27 +22,23 @@
  */
 package ch.ethz.tell;
 
-public class ScanIterator {
-    private long mImpl;
+import java.lang.reflect.Field;
 
-    private static native boolean next(long impl);
-    public final boolean next() {
-        return next(mImpl);
+public class Unsafe {
+    public static sun.misc.Unsafe getUnsafe() {
+        try {
+            Field singleoneInstanceField = Unsafe.class.getDeclaredField("theUnsafe");
+            singleoneInstanceField.setAccessible(true);
+            return (sun.misc.Unsafe) singleoneInstanceField.get(null);
+        } catch (IllegalArgumentException e) {
+            throw new UnsafeException(e);
+        } catch (SecurityException e) {
+            throw new UnsafeException(e);
+        } catch (NoSuchFieldException e) {
+            throw new UnsafeException(e);
+        } catch (IllegalAccessException e) {
+            throw new UnsafeException(e);
+        }
     }
-
-    private static native long address(long impl);
-    public final long address() {
-        return address(mImpl);
-    }
-
-    private static native long length(long impl);
-    public final long length() {
-        return length(mImpl);
-    }
-
-    ScanIterator(long impl) {
-        mImpl = impl;
-    }
-
 }
 

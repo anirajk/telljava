@@ -23,18 +23,11 @@
 #include <ch_ethz_tell_ClientManager.h>
 #include <tellstore/ClientConfig.hpp>
 #include <tellstore/ClientManager.hpp>
+#include "clientManager.h"
 
 using namespace tell::store;
 
-namespace {
-
-struct ImplementationDetails {
-    ImplementationDetails() : clientManager(config) {}
-    tell::store::ClientConfig config;
-    tell::store::ClientManager<void> clientManager;
-};
-
-} // impl
+using ImplementationDetails = telljava::ClientManager;
 
 crossbow::string to_string(JNIEnv* env, jstring str) {
     auto ptr = env->GetStringUTFChars(str, nullptr);
@@ -48,12 +41,24 @@ jlong Java_ch_ethz_tell_ClientManager_getClientManagerPtr(JNIEnv*, jclass, jlong
     return reinterpret_cast<jlong>(&o->clientManager);
 }
 
-jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env, jobject self, jstring commitManager, jstring tellStore) {
+jlong Java_ch_ethz_tell_ClientManager_getScanMemoryManagerPtr(JNIEnv*, jclass, jlong impl) {
+    auto o = reinterpret_cast<ImplementationDetails*>(impl);
+    return reinterpret_cast<jlong>(&o->scanMemoryManager);
+}
+
+jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
+        jobject self,
+        jstring commitManager,
+        jstring tellStore,
+        jlong chunkCount,
+        jlong chunkSize)
+{
     auto res = new ImplementationDetails();
     auto cM = to_string(env, commitManager);
     auto tS = to_string(env, tellStore);
     res->config.commitManager = ClientConfig::parseCommitManager(cM);
     res->config.tellStore = ClientConfig::parseTellStore(tS);
+    res->scanMemoryManager = std::move(res->clientManager.allocateScanMemory(size_t(chunkCount), size_t(chunkSize)));
     return reinterpret_cast<jlong>(res);
 }
 

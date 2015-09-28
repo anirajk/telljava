@@ -30,15 +30,20 @@ public class ClientManager {
         return getClientManagerPtr(mImplPtr);
     }
 
-    public ClientManager(String commitManager, String tellStore) {
-        mImplPtr = init(commitManager, tellStore);
+    private static native long getScanMemoryManagerPtr(long implPtr);
+    long getScanMemoryManagerPtr() {
+        return getScanMemoryManagerPtr(mImplPtr);
+    }
+
+    public ClientManager(String commitManager, String tellStore, long chunkCount, long chunkSize) {
+        mImplPtr = init(commitManager, tellStore, chunkCount, chunkSize);
     }
 
     public final long getImplPtr() {
         return mImplPtr;
     }
 
-    private native long init(String commitManager, String tellStore);
+    private native long init(String commitManager, String tellStore, long chunkCount, long chunkSize);
 
     private native void shutdown(long ptr);
 

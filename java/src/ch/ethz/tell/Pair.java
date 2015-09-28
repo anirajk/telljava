@@ -22,27 +22,15 @@
  */
 package ch.ethz.tell;
 
-public class ScanIterator {
-    private long mImpl;
 
-    private static native boolean next(long impl);
-    public final boolean next() {
-        return next(mImpl);
+public class Pair<F,S> {
+    public F first;
+    public S second;
+
+    public Pair() {}
+    public Pair(F first, S second) {
+        this.first = first;
+        this.second = second;
     }
-
-    private static native long address(long impl);
-    public final long address() {
-        return address(mImpl);
-    }
-
-    private static native long length(long impl);
-    public final long length() {
-        return length(mImpl);
-    }
-
-    ScanIterator(long impl) {
-        mImpl = impl;
-    }
-
 }
 

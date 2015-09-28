@@ -22,17 +22,19 @@
  */
 package ch.ethz.tell;
 
+import java.util.Arrays;
+
 public class Transaction {
     private long mImpl;
     
-    private static native long startTx(long clientManager);
+    private static native long startTx(long clientManager, long scanMemoryManager);
 
     private Transaction(long impl) {
         mImpl = impl;
     }
 
     public static Transaction startTransaction(ClientManager manager) {
-        return new Transaction(startTx(manager.getClientManagerPtr()));
+        return new Transaction(startTx(manager.getClientManagerPtr(), manager.getScanMemoryManagerPtr()));
     }
 
     private static native boolean commit(long impl);
@@ -45,7 +47,36 @@ public class Transaction {
         abort(mImpl);
     }
 
-    public ScanIterator scan(ScanQuery query, String tableName) {
-        return new ScanIterator();
+    private static native void startScan(long impl,
+                                         String tableName,
+                                         byte queryType,
+                                         long selectionLength,
+                                         long selection,
+                                         long queryLength,
+                                         long query);
+
+    
+    public ScanIterator scan(ScanQuery query,
+                             String tableName,
+                             short[] projection)
+    {
+        sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
+        byte queryType = ScanQuery.QueryType.FULL.toUnderlying();
+        long projLength = 0;
+        long proj = 0;
+        if (projection != null) {
+            Arrays.sort(projection, 0, projection.length);
+            projLength = projection.length * 2;
+            proj = unsafe.allocateMemory(projLength);
+            for (int i = 0; i < projection.length; ++i) {
+                unsafe.putShort(proj + 2*i, projection[i]);
+            }
+            queryType = ScanQuery.QueryType.PROJECTION.toUnderlying();
+        }
+        Pair<Long, Long> selection = query.serialize();
+        startScan(mImpl, tableName, queryType, selection.first, selection.second, projLength, proj);
+        unsafe.freeMemory(selection.second);
+        unsafe.freeMemory(proj);
+        return new ScanIterator(mImpl);
     }
 }

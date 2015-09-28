@@ -20,29 +20,16 @@
  *     Kevin Bocksrocker <kevin.bocksrocker@gmail.com>
  *     Lucas Braun <braunl@inf.ethz.ch>
  */
-package ch.ethz.tell;
+#pragma once
+#include <tellstore/ClientManager.hpp>
 
-public class ScanIterator {
-    private long mImpl;
+namespace telljava {
 
-    private static native boolean next(long impl);
-    public final boolean next() {
-        return next(mImpl);
-    }
+struct ClientManager {
+    ClientManager() : clientManager(config) {}
+    tell::store::ClientConfig config;
+    tell::store::ClientManager<void> clientManager;
+    std::unique_ptr<tell::store::ScanMemoryManager> scanMemoryManager;
+};
 
-    private static native long address(long impl);
-    public final long address() {
-        return address(mImpl);
-    }
-
-    private static native long length(long impl);
-    public final long length() {
-        return length(mImpl);
-    }
-
-    ScanIterator(long impl) {
-        mImpl = impl;
-    }
-
-}
-
+} // namespace telljava

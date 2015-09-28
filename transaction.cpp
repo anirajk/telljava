@@ -21,10 +21,12 @@
  *     Lucas Braun <braunl@inf.ethz.ch>
  */
 #include <ch_ethz_tell_Transaction.h>
+#include <ch_ethz_tell_ScanIterator.h>
 #include <jni.h>
 #include <tellstore/ClientManager.hpp>
 #include <tellstore/TransactionRunner.hpp>
 #include <iostream>
+#include "helpers.hpp"
 
 namespace {
 
@@ -32,19 +34,49 @@ enum class TxState {
     Initial,
     Commit,
     Abort,
-    Done
+    Done,
+    Scan,
+    ScanDone
+};
+
+struct ScanArgs {
+    crossbow::string tableName;
+    tell::store::ScanQueryType queryType;
+    uint32_t selectionLength;
+    const char* selection;
+    uint32_t queryLength;
+    const char* query;
 };
 
 struct ImplementationDetails {
     tell::store::SingleTransactionRunner<void> txRunner;
-    ImplementationDetails(tell::store::ClientManager<void>& clientManager)
-        : txRunner(clientManager)
-    {}
     TxState state;
-    void* result;
+    tell::store::ScanMemoryManager& scanMemoryManager;
+    ImplementationDetails(tell::store::ClientManager<void>& clientManager, tell::store::ScanMemoryManager& scanMemoryManager)
+        : txRunner(clientManager)
+        , state(TxState::Initial)
+        , scanMemoryManager(scanMemoryManager)
+        , chunk(std::make_tuple(nullptr, nullptr))
+    {}
+    ScanArgs scanArgs;
+    std::tuple<const char*, const char*> chunk;
     void run(tell::store::ClientHandle& handle) {
         auto tx = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
         runTx(handle, tx);
+    }
+    void scan(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
+        auto tableResp = handle.getTable(scanArgs.tableName);
+        auto table = tableResp->get();
+        auto scanResult = tx.scan(table, scanMemoryManager, scanArgs.queryType,
+                scanArgs.selectionLength, scanArgs.selection,
+                scanArgs.queryLength, scanArgs.query);
+        txRunner.block();
+        while (scanResult->hasNext()) {
+            chunk = scanResult->nextChunk();
+            txRunner.block();
+        }
+        state = TxState::ScanDone;
+        txRunner.block();
     }
     void runTx(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
         state = TxState::Initial;
@@ -63,6 +95,12 @@ struct ImplementationDetails {
                 case TxState::Done:
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
                     std::terminate();
+                case TxState::Scan:
+                    scan(handle, tx);
+                    break;
+                case TxState::ScanDone:
+                    std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
+                    std::terminate();
             }
             txRunner.block();
         }
@@ -71,9 +109,30 @@ struct ImplementationDetails {
 
 } // anonymous namespace
 
-jlong Java_ch_ethz_tell_Transaction_startTx(JNIEnv*, jclass, jlong clientManagerPtr) {
+jboolean Java_ch_ethz_tell_ScanIterator_next(JNIEnv* env, jclass, jlong ptr) {
+    auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    impl->txRunner.unblock();
+    impl->txRunner.wait();
+    if (impl->state == TxState::ScanDone) {
+        return false;
+    }
+    return true;
+}
+
+jlong Java_ch_ethz_tell_ScanIterator_address(JNIEnv*, jclass, jlong ptr) {
+    auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    return reinterpret_cast<jlong>(std::get<0>(impl->chunk));
+}
+
+jlong Java_ch_ethz_tell_ScanIterator_length(JNIEnv*, jclass, jlong ptr) {
+    auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    auto& chunk = impl->chunk;
+    return reinterpret_cast<jlong>(std::get<1>(chunk) - std::get<0>(chunk));
+}
+
+jlong Java_ch_ethz_tell_Transaction_startTx(JNIEnv*, jclass, jlong clientManagerPtr, jlong scanMemoryManager) {
     auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
-    auto impl = new ImplementationDetails{ *clientManager };
+    auto impl = new ImplementationDetails{ *clientManager, *reinterpret_cast<tell::store::ScanMemoryManager*>(scanMemoryManager) };
     impl->txRunner.execute([impl](tell::store::ClientHandle& handle){
         impl->run(handle);
     });
@@ -96,6 +155,29 @@ void Java_ch_ethz_tell_Transaction_abort(JNIEnv*, jclass, jlong ptr) {
     impl->txRunner.unblock();
     impl->txRunner.wait();
     delete impl;
+}
+
+void Java_ch_ethz_tell_Transaction_startScan(JNIEnv* env,
+        jclass,
+        jlong ptr,
+        jstring tableName,
+        jbyte queryType,
+        jlong selectionLength,
+        jlong selection,
+        jlong queryLength,
+        jlong query)
+{
+    auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    ScanArgs& args = impl->scanArgs;
+    args.tableName = to_string(env, tableName);
+    args.queryType = crossbow::from_underlying<tell::store::ScanQueryType>(uint8_t(queryType));
+    args.selectionLength = uint32_t(selectionLength);
+    args.selection = reinterpret_cast<const char*>(selection);
+    args.queryLength = uint32_t(queryLength);
+    args.query = reinterpret_cast<const char*>(query);
+    impl->state = TxState::Scan;
+    impl->txRunner.unblock();
+    impl->txRunner.wait();
 }
 
 
