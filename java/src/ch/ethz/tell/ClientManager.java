@@ -23,6 +23,12 @@
 package ch.ethz.tell;
 
 public class ClientManager {
+
+    static {
+        System.loadLibrary("telljavaimpl");
+    }
+
+
     private long mImplPtr;
 
     private static native long getClientManagerPtr(long implPtr);
