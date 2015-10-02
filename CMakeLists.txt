@@ -17,15 +17,15 @@ include(UseJava)
 set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8" "-XDignore.symbol.file")
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(telljava
-    java/src/ch/ethz/tell/ClientManager.java
-    java/src/ch/ethz/tell/Schema.java
-    java/src/ch/ethz/tell/Transaction.java
-    java/src/ch/ethz/tell/PredicateType.java
-    java/src/ch/ethz/tell/ScanQuery.java
-    java/src/ch/ethz/tell/ScanIterator.java
-    java/src/ch/ethz/tell/Pair.java
-    java/src/ch/ethz/tell/Unsafe.java
-    java/src/ch/ethz/tell/UnsafeException.java
+    java/src/main/ch/ethz/tell/ClientManager.java
+    java/src/main/ch/ethz/tell/Schema.java
+    java/src/main/ch/ethz/tell/Transaction.java
+    java/src/main/ch/ethz/tell/PredicateType.java
+    java/src/main/ch/ethz/tell/ScanQuery.java
+    java/src/main/ch/ethz/tell/ScanIterator.java
+    java/src/main/ch/ethz/tell/Pair.java
+    java/src/main/ch/ethz/tell/Unsafe.java
+    java/src/main/ch/ethz/tell/UnsafeException.java
     VERSION 1.0)
 javah(telljava
     "ch.ethz.tell.ClientManager"
