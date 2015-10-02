@@ -34,33 +34,33 @@ public interface PredicateType {
         ByteArray
     }
 
-    public Type getType();
+    Type getType();
 
-    public <T> T value();
+    <T> T value();
 
-    public static PredicateType create(short value) {
+    static PredicateType create(short value) {
         return new ShortType(value);
     }
-    public static PredicateType create(int value) {
+    static PredicateType create(int value) {
         return new IntType(value);
     }
-    public static PredicateType create(long value) {
+    static PredicateType create(long value) {
         return new LongType(value);
     }
-    public static PredicateType create(float value) {
+    static PredicateType create(float value) {
         return new FloatType(value);
     }
-    public static PredicateType create(double value) {
+    static PredicateType create(double value) {
         return new DoubleType(value);
     }
-    public static PredicateType create(String value) {
+    static PredicateType create(String value) {
         return new StringType(value);
     }
-    public static PredicateType create(byte[] value) {
+    static PredicateType create(byte[] value) {
         return new ByteArrayType(value);
     }
 
-    public class BoolType implements PredicateType {
+    class BoolType implements PredicateType {
 
         private boolean val;
 
@@ -80,7 +80,7 @@ public interface PredicateType {
         }
     }
 
-    public class ShortType implements PredicateType {
+    class ShortType implements PredicateType {
 
         private short val;
 
@@ -100,7 +100,7 @@ public interface PredicateType {
         }
     }
 
-    public class IntType implements PredicateType {
+    class IntType implements PredicateType {
         private int value;
 
         public IntType(int value) {
@@ -119,7 +119,7 @@ public interface PredicateType {
         }
     }
 
-    public class LongType implements PredicateType {
+    class LongType implements PredicateType {
         private long value;
 
         public LongType(long value) {
@@ -138,7 +138,7 @@ public interface PredicateType {
         }
     }
 
-    public class FloatType implements PredicateType {
+    class FloatType implements PredicateType {
         private float value;
 
         public FloatType(float value) {
@@ -157,7 +157,7 @@ public interface PredicateType {
         }
     }
 
-    public class DoubleType implements PredicateType {
+    class DoubleType implements PredicateType {
         private double value;
 
         public DoubleType(double value) {
@@ -176,7 +176,7 @@ public interface PredicateType {
         }
     }
 
-    public class StringType implements PredicateType {
+    class StringType implements PredicateType {
         private String value;
 
         public StringType(String value) {
@@ -195,7 +195,7 @@ public interface PredicateType {
         }
     }
 
-    public class ByteArrayType implements PredicateType {
+    class ByteArrayType implements PredicateType {
         private byte[] value;
 
         public ByteArrayType(byte[] value) {

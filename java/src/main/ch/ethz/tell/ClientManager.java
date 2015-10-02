@@ -28,7 +28,6 @@ public class ClientManager {
         System.loadLibrary("telljavaimpl");
     }
 
-
     private long mImplPtr;
 
     private static native long getClientManagerPtr(long implPtr);
