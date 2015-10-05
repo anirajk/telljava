@@ -2,11 +2,18 @@ package ch.ethz.tell;
 
 /**
  */
-public class TestRunner {
+public class Runner {
 
     public static void main (String args[]) {
-        String commitMng = "";
-        String tellStr = "";
+        //TODO have a nicer command line interface
+        if (args.length < 2) {
+            System.out.println("Usage: <commitMngAddress> <tellStoreAddress>");
+            System.exit(1);
+        }
+
+        String commitMng = args[0];
+        String tellStr = args[1];
+
         long chunkCount = 1L;
         long chunkSize = 10l;
         // create table testTable (id int);
