@@ -125,7 +125,7 @@ public class ScanQuery {
                 if (res.containsKey(cId)) {
                     list = res.get(cId);
                 } else {
-                    list = new ArrayList<Pair<Predicate, Byte>>();
+                    list = new ArrayList<>();
                     res.put(cId, list);
                 }
                 Pair<Predicate, Byte> p = new Pair<>(selection.get(i), pos);
