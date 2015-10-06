@@ -53,11 +53,12 @@ jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
         jlong chunkCount,
         jlong chunkSize)
 {
-    auto res = new ImplementationDetails();
     auto cM = to_string(env, commitManager);
     auto tS = to_string(env, tellStore);
-    res->config.commitManager = ClientConfig::parseCommitManager(cM);
-    res->config.tellStore = ClientConfig::parseTellStore(tS);
+    ClientConfig config;
+    config.commitManager = ClientConfig::parseCommitManager(cM);
+    config.tellStore = ClientConfig::parseTellStore(tS);
+    auto res = new ImplementationDetails(std::move(config));
     res->scanMemoryManager = std::move(res->clientManager.allocateScanMemory(size_t(chunkCount), size_t(chunkSize)));
     return reinterpret_cast<jlong>(res);
 }
@@ -70,72 +71,72 @@ void Java_ch_ethz_tell_ClientManager_shutdown(JNIEnv* env, jobject, jlong ptr) {
 
 void Java_ch_ethz_tell_ClientManager_setMaxPendingResponsesImpl(JNIEnv*, jobject, jlong obj, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(obj);
-    o->config.maxPendingResponses = value;
+    o->mConfig.maxPendingResponses = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getMaxPendingResponsesImpl(JNIEnv*, jobject, jlong self) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.maxPendingResponses;
+    return o->mConfig.maxPendingResponses;
 }
 
 void Java_ch_ethz_tell_ClientManager_setNumNetworkThreadsImpl(JNIEnv *, jobject, jlong self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    o->config.numNetworkThreads = value;
+    o->mConfig.numNetworkThreads = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getNumNetworkThreadsImpl(JNIEnv *, jobject, jlong self) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.numNetworkThreads;
+    return o->mConfig.numNetworkThreads;
 }
 
 void Java_ch_ethz_tell_ClientManager_setReceiveBufferCountImpl(JNIEnv *, jobject, jlong self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    o->config.infinibandConfig.receiveBufferCount = value;
+    o->mConfig.infinibandConfig.receiveBufferCount = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getReceiveBufferCountImpl(JNIEnv *, jobject, jlong self) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.infinibandConfig.receiveBufferCount;
+    return o->mConfig.infinibandConfig.receiveBufferCount;
 }
 
 void Java_ch_ethz_tell_ClientManager_setSendBufferCountImpl(JNIEnv *, jobject, jlong self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    o->config.infinibandConfig.sendBufferCount = value;
+    o->mConfig.infinibandConfig.sendBufferCount = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getSendBufferCountImpl(JNIEnv *, jobject, jlong self) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.infinibandConfig.sendBufferCount;
+    return o->mConfig.infinibandConfig.sendBufferCount;
 }
 
 void Java_ch_ethz_tell_ClientManager_setBufferLengthImpl(JNIEnv *, jobject, jlong self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    o->config.infinibandConfig.bufferLength = value;
+    o->mConfig.infinibandConfig.bufferLength = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getBufferLengthImpl(JNIEnv *, jobject self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.infinibandConfig.bufferLength;
+    return o->mConfig.infinibandConfig.bufferLength;
 }
 
 void Java_ch_ethz_tell_ClientManager_setCompletionQueueLengthImpl(JNIEnv *, jobject, jlong self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    o->config.infinibandConfig.completionQueueLength = value;
+    o->mConfig.infinibandConfig.completionQueueLength = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getCompletionQueueLengthImpl(JNIEnv *, jobject, jlong self) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.infinibandConfig.completionQueueLength;
+    return o->mConfig.infinibandConfig.completionQueueLength;
 }
 
 void Java_ch_ethz_tell_ClientManager_setSendQueueLengthImpl(JNIEnv*, jobject, jlong self, jlong value) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    o->config.infinibandConfig.sendQueueLength = value;
+    o->mConfig.infinibandConfig.sendQueueLength = value;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getSendQueueLengthImpl(JNIEnv*, jobject, jlong self) {
     auto o = reinterpret_cast<ImplementationDetails*>(self);
-    return o->config.infinibandConfig.sendQueueLength;
+    return o->mConfig.infinibandConfig.sendQueueLength;
 }
 
 

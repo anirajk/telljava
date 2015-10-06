@@ -26,10 +26,10 @@
 namespace telljava {
 
 struct ClientManager {
-    ClientManager() : clientManager(config) {}
-    tell::store::ClientConfig config;
+    tell::store::ClientConfig mConfig;
     tell::store::ClientManager<void> clientManager;
     std::unique_ptr<tell::store::ScanMemoryManager> scanMemoryManager;
+    ClientManager(tell::store::ClientConfig&& config) : mConfig(std::move(config)), clientManager(mConfig) {}
 };
 
 } // namespace telljava
