@@ -33,7 +33,7 @@ crossbow::string to_string(JNIEnv* env, jstring str) {
     auto ptr = env->GetStringUTFChars(str, nullptr);
     crossbow::string res(ptr, env->GetStringUTFLength(str));
     env->ReleaseStringUTFChars(str, ptr);
-    return ptr;
+    return res;
 }
 
 jlong Java_ch_ethz_tell_ClientManager_getClientManagerPtr(JNIEnv*, jclass, jlong impl) {
