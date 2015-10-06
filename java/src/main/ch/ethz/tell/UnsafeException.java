@@ -23,6 +23,9 @@
 package ch.ethz.tell;
 
 public class UnsafeException extends RuntimeException {
+
+    static final long serialVersionUID = 42L;
+
     private Throwable cause;
 
     public UnsafeException(Throwable cause) {
@@ -34,5 +37,4 @@ public class UnsafeException extends RuntimeException {
         return cause;
     }
 
-    static final long serialVersionUID = 42L;
 }

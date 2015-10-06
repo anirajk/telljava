@@ -74,6 +74,10 @@ public class ScanQuery {
     public class CNFCLause {
         private ArrayList<Predicate> predicates;
 
+        public CNFCLause() {
+            this.predicates = new ArrayList<>();
+        }
+
         public final void addPredicate(CmpType type, short field, PredicateType value) {
             Predicate p = new Predicate();
             p.type = type;
@@ -105,6 +109,11 @@ public class ScanQuery {
 
     private ArrayList<CNFCLause> selections;
     private ArrayList<Integer> projections;
+
+    public ScanQuery() {
+        this.selections = new ArrayList<>();
+        this.projections = new ArrayList<>();
+    }
 
     public void addSelection(CNFCLause clause) {
         selections.add(clause);

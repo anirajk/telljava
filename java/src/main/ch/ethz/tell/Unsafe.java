@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
 public class Unsafe {
     public static sun.misc.Unsafe getUnsafe() {
         try {
-            Field singleoneInstanceField = Unsafe.class.getDeclaredField("theUnsafe");
+            Field singleoneInstanceField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
             singleoneInstanceField.setAccessible(true);
             return (sun.misc.Unsafe) singleoneInstanceField.get(null);
         } catch (IllegalArgumentException e) {
