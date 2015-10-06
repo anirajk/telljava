@@ -36,7 +36,7 @@ public class Schema {
         BLOB	 ((short)8);
         private short value;
 
-        private FieldType(short value) {
+        FieldType(short value) {
             this.value = value;
         }
 

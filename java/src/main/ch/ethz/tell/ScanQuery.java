@@ -201,23 +201,23 @@ public class ScanQuery {
                             offset += 4;
                             break;
                         case Short:
-                            unsafe.putShort(res + offset, data.value());
+                            unsafe.putShort(res + offset, (short) data.value());
                             offset += 4;
                             break;
                         case Int:
-                            unsafe.putInt(res + offset, data.value());
+                            unsafe.putInt(res + offset, (int) data.value());
                             offset += 4;
                             break;
                         case Long:
-                            unsafe.putLong(res + offset, data.value());
+                            unsafe.putLong(res + offset, (long) data.value());
                             offset += 4;
                             break;
                         case Float:
-                            unsafe.putFloat(res + offset, data.value());
+                            unsafe.putFloat(res + offset, (float) data.value());
                             offset += 4;
                             break;
                         case Double:
-                            unsafe.putDouble(res + offset, data.value());
+                            unsafe.putDouble(res + offset, (double) data.value());
                             offset += 4;
                             break;
                         case String:

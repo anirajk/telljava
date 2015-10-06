@@ -14,7 +14,7 @@ macro(javah JAVA_TARGET)
 endmacro(javah)
 
 include(UseJava)
-set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8" "-XDignore.symbol.file")
+set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.7" "-target" "1.7" "-XDignore.symbol.file")
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(telljava
     java/src/main/ch/ethz/tell/ClientManager.java

@@ -14,12 +14,16 @@ public class Runner {
         String commitMng = args[0];
         String tellStr = args[1];
 
+        // single partition
         long chunkCount = 1L;
-        long chunkSize = 10l;
+        // reading 5mb of data
+        long chunkSize = 5120000L;
         // create table testTable (id int);
         // client params
         ClientManager clientManager = new ClientManager(commitMng, tellStr, chunkCount, chunkSize);
+        System.out.println("===Client_Created===");
         Transaction trx = Transaction.startTransaction(clientManager);
+        System.out.println("===Transaction_Created===");
 
         // query params
         short fieldPos = 1;
@@ -33,9 +37,11 @@ public class Runner {
         query.serialize();
         String tblName = "testTable";
         short[]proj = null;
+        System.out.println("===========");
 
         // query itself
         ScanIterator scanIt = trx.scan(query, tblName, proj);
+
         while (scanIt.next()) {
             System.out.println("Length->" + scanIt.length());
             System.out.println("Address->" + scanIt.address());
