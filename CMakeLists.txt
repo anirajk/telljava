@@ -26,7 +26,7 @@ add_jar(telljava
     java/src/main/ch/ethz/tell/Pair.java
     java/src/main/ch/ethz/tell/Unsafe.java
     java/src/main/ch/ethz/tell/UnsafeException.java
-    java/src/test/ch/ethz/tell/TestRunner.java
+    java/src/test/ch/ethz/tell/Runner.java
     VERSION 1.0)
 javah(telljava
     "ch.ethz.tell.ClientManager"
