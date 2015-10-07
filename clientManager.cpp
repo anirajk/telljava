@@ -43,7 +43,7 @@ jlong Java_ch_ethz_tell_ClientManager_getClientManagerPtr(JNIEnv*, jclass, jlong
 
 jlong Java_ch_ethz_tell_ClientManager_getScanMemoryManagerPtr(JNIEnv*, jclass, jlong impl) {
     auto o = reinterpret_cast<ImplementationDetails*>(impl);
-    return reinterpret_cast<jlong>(&o->scanMemoryManager);
+    return reinterpret_cast<jlong>(o->scanMemoryManager.get());
 }
 
 jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
