@@ -76,7 +76,6 @@ struct ImplementationDetails {
             txRunner.block();
         }
         state = TxState::ScanDone;
-        txRunner.block();
     }
     void runTx(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
         state = TxState::Initial;
@@ -87,11 +86,13 @@ struct ImplementationDetails {
                 case TxState::Commit:
                     tx.commit();
                     state = TxState::Done;
-                    break;
+                    txRunner.unblock();
+                    return;
                 case TxState::Abort:
                     tx.abort();
                     state = TxState::Done;
-                    break;
+                    txRunner.unblock();
+                    return;
                 case TxState::Done:
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
                     std::terminate();
