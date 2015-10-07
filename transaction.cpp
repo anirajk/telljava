@@ -50,7 +50,7 @@ struct ScanArgs {
 
 struct ImplementationDetails {
     tell::store::SingleTransactionRunner<void> txRunner;
-    TxState state;
+    std::atomic<TxState> state;
     tell::store::ScanMemoryManager& scanMemoryManager;
     ImplementationDetails(tell::store::ClientManager<void>& clientManager, tell::store::ScanMemoryManager& scanMemoryManager)
         : txRunner(clientManager)
