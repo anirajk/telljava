@@ -80,7 +80,7 @@ struct ImplementationDetails {
     void runTx(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
         state = TxState::Initial;
         while (state != TxState::Done) {
-            switch (state) {
+            switch (state.load()) {
                 case TxState::Initial:
                     break;
                 case TxState::Commit:
