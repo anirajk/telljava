@@ -15,38 +15,79 @@ public class Runner {
         String tellStr = args[1];
 
         // single partition
-        long chunkCount = 1L;
+        long chunkCount = 4L;
         // reading 5mb of data
         long chunkSize = 5120000L;
         // create table testTable (id int);
         // client params
         ClientManager clientManager = new ClientManager(commitMng, tellStr, chunkCount, chunkSize);
-        System.out.println("===Client_Created===");
         Transaction trx = Transaction.startTransaction(clientManager);
-        System.out.println("===Transaction_Created===");
-
         // query params
-        short fieldPos = 1;
+        short fieldPos = 0;
         ScanQuery query = new ScanQuery();
-        query.addProjection(fieldPos);
-        ScanQuery.CNFCLause clause = query.new CNFCLause();
-        clause.addPredicate(ScanQuery.CmpType.GREATER, fieldPos, PredicateType.create(0));
-        query.addSelection(clause);
+//        query.addProjection(fieldPos);
+//        ScanQuery.CNFCLause clause = query.new CNFCLause();
+//        clause.addPredicate(ScanQuery.CmpType.GREATER, fieldPos, PredicateType.create(0));
+//        query.addSelection(clause);
 
         // serialze?
-        query.serialize();
+//        query.serialize();
         String tblName = "testTable";
         short[]proj = null;
-        System.out.println("===========");
 
         // query itself
         ScanIterator scanIt = trx.scan(query, tblName, proj);
 
+        Schema schema = new Schema();
+        schema.addField(Schema.FieldType.INT, "number", true);
+        schema.addField(Schema.FieldType.TEXT, "text1", true);
+        schema.addField(Schema.FieldType.BIGINT, "largenumber", true);
+        schema.addField(Schema.FieldType.TEXT, "text2", true);
+
+        System.out.println("===========");
+        int offset = 0;
+        sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
         while (scanIt.next()) {
+            System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
             System.out.println("Length->" + scanIt.length());
             System.out.println("Address->" + scanIt.address());
-        }
+            long address = scanIt.address();
+            for (Schema.FieldType fieldType : schema.fixedSizeFields()) {
+                switch(fieldType){
+                    case NOTYPE:
+                        break;
+                    case NULLTYPE:
+                        break;
+                    case SMALLINT:
+                        break;
+                    case INT:
+                        offset += 2;
+                        System.out.println(fieldType + "->>" + unsafe.getInt(address + offset));
+                        offset += 4;
+                        break;
+                    case BIGINT:
+                        offset += 6;
+                        System.out.println(fieldType + "->>" + unsafe.getLong(address + offset));
+                        offset += 8;
+                        break;
+                    case FLOAT:
+                        break;
+                    case DOUBLE:
+                        break;
+                    case TEXT:
+                        break;
+                    case BLOB:
+                        break;
+                }
 
-        System.out.println(clientManager.tellLib);
+            }
+            for (Schema.FieldType fieldType : schema.variableSizedFields()) {
+                System.out.println(fieldType + "->>" + unsafe.getChar(address + offset));
+                offset += fieldType.toUnderlying();
+            }
+        }
+        trx.commit();
+        System.out.println("-----------------");
+//        System.out.println(clientManager.tellLib);
     }
 }

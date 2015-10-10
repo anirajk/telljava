@@ -41,7 +41,7 @@ public class ScanQuery {
         IS_NOT_NULL     ((byte)10);
         private byte value;
 
-        private CmpType(byte value) {
+        CmpType(byte value) {
             this.value = value;
         }
 
@@ -57,7 +57,7 @@ public class ScanQuery {
         AGGREGATIOIN    ((byte)3);
         private byte value;
 
-        private QueryType(byte value) {
+        QueryType(byte value) {
             this.value = value;
         }
 
@@ -155,9 +155,11 @@ public class ScanQuery {
                     case Bool:
                     case Short:
                     case Int:
-                    case Long:
                     case Float:
+                        break;
+                    case Long:
                     case Double:
+                        res += 8;
                         break;
                     case String:
                         String s = value.value();
@@ -195,7 +197,7 @@ public class ScanQuery {
                 // Number of predicates for this column
                 short numPreds = (short) e.getValue().size();
                 unsafe.putShort(res + offset, numPreds);
-                offset += 4; // padding
+                offset += 6; // padding
                 for (Pair<Predicate, Byte> p : e.getValue()) {
                     unsafe.putByte(res + offset, p.first.type.toUnderlying());
                     offset += 1;
@@ -210,24 +212,28 @@ public class ScanQuery {
                             offset += 4;
                             break;
                         case Short:
-                            unsafe.putShort(res + offset, (short) data.value());
+                            unsafe.putShort(res + offset, data.value());
                             offset += 4;
                             break;
                         case Int:
-                            unsafe.putInt(res + offset, (int) data.value());
+                            offset += 2;
+                            unsafe.putInt(res + offset, data.value());
                             offset += 4;
                             break;
                         case Long:
-                            unsafe.putLong(res + offset, (long) data.value());
-                            offset += 4;
+                            offset += 6;
+                            unsafe.putLong(res + offset, data.value());
+                            offset += 8;
                             break;
                         case Float:
-                            unsafe.putFloat(res + offset, (float) data.value());
+                            offset += 2;
+                            unsafe.putFloat(res + offset, data.value());
                             offset += 4;
                             break;
                         case Double:
-                            unsafe.putDouble(res + offset, (double) data.value());
-                            offset += 4;
+                            offset += 6;
+                            unsafe.putDouble(res + offset, data.value());
+                            offset += 8;
                             break;
                         case String:
                             String str = data.value();

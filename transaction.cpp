@@ -50,7 +50,7 @@ struct ScanArgs {
 
 struct ImplementationDetails {
     tell::store::SingleTransactionRunner<void> txRunner;
-    TxState state;
+    std::atomic<TxState> state;
     tell::store::ScanMemoryManager& scanMemoryManager;
     ImplementationDetails(tell::store::ClientManager<void>& clientManager, tell::store::ScanMemoryManager& scanMemoryManager)
         : txRunner(clientManager)
@@ -76,7 +76,6 @@ struct ImplementationDetails {
             txRunner.block();
         }
         state = TxState::ScanDone;
-        txRunner.block();
     }
     void runTx(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
         state = TxState::Initial;
@@ -175,9 +174,13 @@ void Java_ch_ethz_tell_Transaction_startScan(JNIEnv* env,
     args.selection = reinterpret_cast<const char*>(selection);
     args.queryLength = uint32_t(queryLength);
     args.query = reinterpret_cast<const char*>(query);
+    std::cout<<"STARTING SCAN"<<std::endl;
     impl->state = TxState::Scan;
+    std::cout<<"UNBLOCK SCAN"<<std::endl;
     impl->txRunner.unblock();
+    std::cout<<"WAIT SCAN"<<std::endl;
     impl->txRunner.wait();
+    std::cout<<"OUT SCAN"<<std::endl;
 }
 
 
