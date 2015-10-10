@@ -138,5 +138,3 @@ jlong Java_ch_ethz_tell_ClientManager_getSendQueueLengthImpl(JNIEnv*, jobject, j
     auto o = reinterpret_cast<ImplementationDetails*>(self);
     return o->mConfig.infinibandConfig.sendQueueLength;
 }
-
-
