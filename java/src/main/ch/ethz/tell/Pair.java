@@ -23,7 +23,11 @@
 package ch.ethz.tell;
 
 
-public class Pair<F,S> {
+import java.io.Serializable;
+
+public class Pair<F,S> implements  Serializable {
+    private static final long serialVersionUID = 7526472295622770144L;
+
     public F first;
     public S second;
 

@@ -18,12 +18,14 @@ set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8" "-XDignore.symbol.f
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(telljava
     java/src/main/ch/ethz/tell/ClientManager.java
+    java/src/main/ch/ethz/tell/CNFCLause.java
+    java/src/main/ch/ethz/tell/Pair.java
+    java/src/main/ch/ethz/tell/Predicate.java
+    java/src/main/ch/ethz/tell/PredicateType.java
+    java/src/main/ch/ethz/tell/ScanIterator.java
+    java/src/main/ch/ethz/tell/ScanQuery.java
     java/src/main/ch/ethz/tell/Schema.java
     java/src/main/ch/ethz/tell/Transaction.java
-    java/src/main/ch/ethz/tell/PredicateType.java
-    java/src/main/ch/ethz/tell/ScanQuery.java
-    java/src/main/ch/ethz/tell/ScanIterator.java
-    java/src/main/ch/ethz/tell/Pair.java
     java/src/main/ch/ethz/tell/Unsafe.java
     java/src/main/ch/ethz/tell/UnsafeException.java
     java/src/test/ch/ethz/tell/Runner.java

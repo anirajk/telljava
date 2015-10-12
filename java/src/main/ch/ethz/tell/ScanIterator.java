@@ -22,7 +22,10 @@
  */
 package ch.ethz.tell;
 
-public class ScanIterator {
+import java.io.Serializable;
+
+public class ScanIterator implements Serializable {
+    private static final long serialVersionUID = 7526472295622770144L;
     private long mImpl;
 
     private static native boolean next(long impl);

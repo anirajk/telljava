@@ -22,12 +22,16 @@
  */
 package ch.ethz.tell;
 
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class ScanQuery {
+public class ScanQuery implements Serializable {
+
+    private static final long serialVersionUID = 7526472295622776147L;
+
     public enum CmpType {
         EQUAL           ((byte)1),
         NOT_EQUAL       ((byte)2),
@@ -66,12 +70,17 @@ public class ScanQuery {
         }
     }
 
-    private class Predicate {
+    private class Predicate implements Serializable {
+        private static final long serialVersionUID = 7526472295622776144L;
+
         public CmpType type;
         public short field;
         public PredicateType value;
     }
-    public class CNFCLause {
+
+    public class CNFCLause implements Serializable {
+        private static final long serialVersionUID = 7526472295622776140L;
+
         private ArrayList<Predicate> predicates;
 
         public CNFCLause() {
