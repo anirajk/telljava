@@ -201,9 +201,13 @@ void Java_ch_ethz_tell_Transaction_startScan(JNIEnv* env,
     args.selection = reinterpret_cast<const char*>(selection);
     args.queryLength = uint32_t(queryLength);
     args.query = reinterpret_cast<const char*>(query);
+    std::cout<<"STARTING SCAN"<<std::endl;
     impl->state = TxState::Scan;
+    std::cout<<"UNBLOCK SCAN"<<std::endl;
     impl->txRunner.unblock();
+    std::cout<<"WAIT SCAN"<<std::endl;
     impl->txRunner.wait();
+    std::cout<<"OUT SCAN"<<std::endl;
 }
 
 

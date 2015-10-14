@@ -22,23 +22,30 @@
  */
 package ch.ethz.tell;
 
-import java.lang.reflect.Field;
+import java.io.Serializable;
 
-public class Unsafe {
-    public static sun.misc.Unsafe getUnsafe() {
-        try {
-            Field singleoneInstanceField = Unsafe.class.getDeclaredField("theUnsafe");
-            singleoneInstanceField.setAccessible(true);
-            return (sun.misc.Unsafe) singleoneInstanceField.get(null);
-        } catch (IllegalArgumentException e) {
-            throw new UnsafeException(e);
-        } catch (SecurityException e) {
-            throw new UnsafeException(e);
-        } catch (NoSuchFieldException e) {
-            throw new UnsafeException(e);
-        } catch (IllegalAccessException e) {
-            throw new UnsafeException(e);
-        }
+public class ScanIterator implements Serializable {
+    private static final long serialVersionUID = 7526472295622770144L;
+    private long mImpl;
+
+    private static native boolean next(long impl);
+    public final boolean next() {
+        return next(mImpl);
     }
+
+    private static native long address(long impl);
+    public final long address() {
+        return address(mImpl);
+    }
+
+    private static native long length(long impl);
+    public final long length() {
+        return length(mImpl);
+    }
+
+    ScanIterator(long impl) {
+        mImpl = impl;
+    }
+
 }
 

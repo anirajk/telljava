@@ -22,6 +22,8 @@
  */
 package ch.ethz.tell;
 
+import java.io.Serializable;
+
 public interface PredicateType {
     enum Type {
         Bool,
@@ -34,33 +36,34 @@ public interface PredicateType {
         ByteArray
     }
 
-    public Type getType();
+    Type getType();
 
-    public <T> T value();
+    <T> T value();
 
-    public static PredicateType create(short value) {
+    static PredicateType create(short value) {
         return new ShortType(value);
     }
-    public static PredicateType create(int value) {
+    static PredicateType create(int value) {
         return new IntType(value);
     }
-    public static PredicateType create(long value) {
+    static PredicateType create(long value) {
         return new LongType(value);
     }
-    public static PredicateType create(float value) {
+    static PredicateType create(float value) {
         return new FloatType(value);
     }
-    public static PredicateType create(double value) {
+    static PredicateType create(double value) {
         return new DoubleType(value);
     }
-    public static PredicateType create(String value) {
+    static PredicateType create(String value) {
         return new StringType(value);
     }
-    public static PredicateType create(byte[] value) {
+    static PredicateType create(byte[] value) {
         return new ByteArrayType(value);
     }
 
-    public class BoolType implements PredicateType {
+    class BoolType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472295622770144L;
 
         private boolean val;
 
@@ -80,7 +83,8 @@ public interface PredicateType {
         }
     }
 
-    public class ShortType implements PredicateType {
+    class ShortType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472295622770244L;
 
         private short val;
 
@@ -100,7 +104,8 @@ public interface PredicateType {
         }
     }
 
-    public class IntType implements PredicateType {
+    class IntType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472295622770244L;
         private int value;
 
         public IntType(int value) {
@@ -119,7 +124,8 @@ public interface PredicateType {
         }
     }
 
-    public class LongType implements PredicateType {
+    class LongType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472295612770144L;
         private long value;
 
         public LongType(long value) {
@@ -138,7 +144,8 @@ public interface PredicateType {
         }
     }
 
-    public class FloatType implements PredicateType {
+    class FloatType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472295522770144L;
         private float value;
 
         public FloatType(float value) {
@@ -157,7 +164,8 @@ public interface PredicateType {
         }
     }
 
-    public class DoubleType implements PredicateType {
+    class DoubleType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472195622770144L;
         private double value;
 
         public DoubleType(double value) {
@@ -176,7 +184,8 @@ public interface PredicateType {
         }
     }
 
-    public class StringType implements PredicateType {
+    class StringType implements PredicateType, Serializable {
+        private static final long serialVersionUID = 7526472295632770144L;
         private String value;
 
         public StringType(String value) {
@@ -195,7 +204,8 @@ public interface PredicateType {
         }
     }
 
-    public class ByteArrayType implements PredicateType {
+    class ByteArrayType implements PredicateType , Serializable {
+        private static final long serialVersionUID = 7526472295622770142L;
         private byte[] value;
 
         public ByteArrayType(byte[] value) {

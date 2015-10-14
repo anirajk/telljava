@@ -22,27 +22,19 @@
  */
 package ch.ethz.tell;
 
-public class ScanIterator {
-    private long mImpl;
+public class UnsafeException extends RuntimeException {
 
-    private static native boolean next(long impl);
-    public final boolean next() {
-        return next(mImpl);
+    static final long serialVersionUID = 42L;
+
+    private Throwable cause;
+
+    public UnsafeException(Throwable cause) {
+        this.cause = cause;
     }
 
-    private static native long address(long impl);
-    public final long address() {
-        return address(mImpl);
-    }
-
-    private static native long length(long impl);
-    public final long length() {
-        return length(mImpl);
-    }
-
-    ScanIterator(long impl) {
-        mImpl = impl;
+    @Override
+    public Throwable getCause() {
+        return cause;
     }
 
 }
-

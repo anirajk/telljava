@@ -24,10 +24,11 @@ package ch.ethz.tell;
 
 public class ClientManager {
 
-    static {
-        System.loadLibrary("telljavaimpl");
-    }
+    public static String tellLib = "telljavaimpl";
 
+    static {
+        System.loadLibrary(tellLib);
+    }
 
     private long mImplPtr;
 

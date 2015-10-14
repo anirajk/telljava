@@ -22,12 +22,16 @@
  */
 package ch.ethz.tell;
 
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class ScanQuery {
+public class ScanQuery implements Serializable {
+
+    private static final long serialVersionUID = 7526472295622776147L;
+
     public enum CmpType {
         EQUAL           ((byte)1),
         NOT_EQUAL       ((byte)2),
@@ -41,7 +45,7 @@ public class ScanQuery {
         IS_NOT_NULL     ((byte)10);
         private byte value;
 
-        private CmpType(byte value) {
+        CmpType(byte value) {
             this.value = value;
         }
 
@@ -57,7 +61,7 @@ public class ScanQuery {
         AGGREGATIOIN    ((byte)3);
         private byte value;
 
-        private QueryType(byte value) {
+        QueryType(byte value) {
             this.value = value;
         }
 
@@ -66,13 +70,22 @@ public class ScanQuery {
         }
     }
 
-    private class Predicate {
+    private class Predicate implements Serializable {
+        private static final long serialVersionUID = 7526472295622776144L;
+
         public CmpType type;
         public short field;
         public PredicateType value;
     }
-    public class CNFCLause {
+
+    public class CNFCLause implements Serializable {
+        private static final long serialVersionUID = 7526472295622776140L;
+
         private ArrayList<Predicate> predicates;
+
+        public CNFCLause() {
+            this.predicates = new ArrayList<>();
+        }
 
         public final void addPredicate(CmpType type, short field, PredicateType value) {
             Predicate p = new Predicate();
@@ -106,6 +119,11 @@ public class ScanQuery {
     private ArrayList<CNFCLause> selections;
     private ArrayList<Integer> projections;
 
+    public ScanQuery() {
+        this.selections = new ArrayList<>();
+        this.projections = new ArrayList<>();
+    }
+
     public void addSelection(CNFCLause clause) {
         selections.add(clause);
     }
@@ -125,7 +143,7 @@ public class ScanQuery {
                 if (res.containsKey(cId)) {
                     list = res.get(cId);
                 } else {
-                    list = new ArrayList<Pair<Predicate, Byte>>();
+                    list = new ArrayList<>();
                     res.put(cId, list);
                 }
                 Pair<Predicate, Byte> p = new Pair<>(selection.get(i), pos);

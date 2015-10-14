@@ -22,17 +22,23 @@
  */
 package ch.ethz.tell;
 
-public class UnsafeException extends RuntimeException {
-    private Throwable cause;
+import java.lang.reflect.Field;
 
-    public UnsafeException(Throwable cause) {
-        this.cause = cause;
+public class Unsafe {
+    public static sun.misc.Unsafe getUnsafe() {
+        try {
+            Field singleoneInstanceField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+            singleoneInstanceField.setAccessible(true);
+            return (sun.misc.Unsafe) singleoneInstanceField.get(null);
+        } catch (IllegalArgumentException e) {
+            throw new UnsafeException(e);
+        } catch (SecurityException e) {
+            throw new UnsafeException(e);
+        } catch (NoSuchFieldException e) {
+            throw new UnsafeException(e);
+        } catch (IllegalAccessException e) {
+            throw new UnsafeException(e);
+        }
     }
-
-    @Override
-    public Throwable getCause() {
-        return cause;
-    }
-
-    static final long serialVersionUID = 42L;
 }
+
