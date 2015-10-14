@@ -28,6 +28,7 @@ public class Transaction {
     private long mImpl;
     
     private static native long startTx(long clientManager, long scanMemoryManager);
+    private static native long startTx(long transactionId, long clientManager, long scanMemoryManager);
 
     private Transaction(long impl) {
         mImpl = impl;
@@ -35,6 +36,10 @@ public class Transaction {
 
     public static Transaction startTransaction(ClientManager manager) {
         return new Transaction(startTx(manager.getClientManagerPtr(), manager.getScanMemoryManagerPtr()));
+    }
+
+    public static Transaction startTransaction(long transactionId, ClientManager manager) {
+        return new Transaction(startTx(transactionId, manager.getClientManagerPtr(), manager.getScanMemoryManagerPtr()));
     }
 
     private static native boolean commit(long impl);
@@ -45,6 +50,11 @@ public class Transaction {
     private static native void abort(long impl);
     public final void abort() {
         abort(mImpl);
+    }
+
+    private static native long getTransactionId(long impl);
+    public final long getTransactionId() {
+        return getTransactionId(mImpl);
     }
 
     private static native void startScan(long impl,

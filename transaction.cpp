@@ -25,6 +25,7 @@
 #include <jni.h>
 #include <tellstore/ClientManager.hpp>
 #include <tellstore/TransactionRunner.hpp>
+#include <commitmanager/SnapshotDescriptor.hpp>
 #include <iostream>
 #include "helpers.hpp"
 
@@ -56,12 +57,20 @@ struct ImplementationDetails {
         : txRunner(clientManager)
         , state(TxState::Initial)
         , scanMemoryManager(scanMemoryManager)
+        , snapshot(nullptr)
         , chunk(std::make_tuple(nullptr, nullptr))
     {}
     ScanArgs scanArgs;
+    std::atomic<const tell::commitmanager::SnapshotDescriptor*> snapshot;
     std::tuple<const char*, const char*> chunk;
     void run(tell::store::ClientHandle& handle) {
         auto tx = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
+        runTx(handle, tx);
+    }
+    void run(uint64_t baseVersion, tell::store::ClientHandle& handle) {
+        using namespace tell::commitmanager;
+        auto desc = SnapshotDescriptor::create(0, baseVersion, baseVersion, nullptr);
+        auto tx = handle.startTransaction(tell::store::TransactionType::ANALYTICAL, std::move(desc));
         runTx(handle, tx);
     }
     void scan(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
@@ -78,6 +87,7 @@ struct ImplementationDetails {
         state = TxState::ScanDone;
     }
     void runTx(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
+        snapshot.store(&tx.snapshot());
         state = TxState::Initial;
         while (state != TxState::Done) {
             switch (state.load()) {
@@ -131,11 +141,21 @@ jlong Java_ch_ethz_tell_ScanIterator_length(JNIEnv*, jclass, jlong ptr) {
     return reinterpret_cast<jlong>(std::get<1>(chunk) - std::get<0>(chunk));
 }
 
-jlong Java_ch_ethz_tell_Transaction_startTx(JNIEnv*, jclass, jlong clientManagerPtr, jlong scanMemoryManager) {
+jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong clientManagerPtr, jlong scanMemoryManager) {
     auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
     auto impl = new ImplementationDetails{ *clientManager, *reinterpret_cast<tell::store::ScanMemoryManager*>(scanMemoryManager) };
     impl->txRunner.execute([impl](tell::store::ClientHandle& handle){
         impl->run(handle);
+    });
+    impl->txRunner.wait();
+    return reinterpret_cast<jlong>(impl);
+}
+
+jlong Java_ch_ethz_tell_Transaction_startTx__JJJ(JNIEnv*, jclass, jlong txId, jlong clientManagerPtr, jlong scanMemoryManager) {
+    auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
+    auto impl = new ImplementationDetails{ *clientManager, *reinterpret_cast<tell::store::ScanMemoryManager*>(scanMemoryManager) };
+    impl->txRunner.execute([impl, txId](tell::store::ClientHandle& handle){
+        impl->run(txId, handle);
     });
     impl->txRunner.wait();
     return reinterpret_cast<jlong>(impl);
@@ -148,6 +168,11 @@ jboolean Java_ch_ethz_tell_Transaction_commit(JNIEnv*, jclass, jlong ptr) {
     impl->txRunner.wait();
     delete impl;
     return true;
+}
+
+jlong Java_ch_ethz_tell_Transaction_getTransactionId(JNIEnv *, jclass, jlong ptr) {
+    auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    return impl->snapshot.load()->baseVersion();
 }
 
 void Java_ch_ethz_tell_Transaction_abort(JNIEnv*, jclass, jlong ptr) {
