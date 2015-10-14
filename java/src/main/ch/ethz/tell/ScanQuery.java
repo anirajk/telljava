@@ -161,24 +161,28 @@ public class ScanQuery implements Serializable {
                 res += 8;
                 PredicateType value = p.first.value;
                 switch (value.getType()) {
+                    // Fields smaller than 64 bit can be stored inside the 8 byte allocated for the predicate
                     case Bool:
                     case Short:
                     case Int:
                     case Float:
                         break;
+                    // 64 bit fields need another 8 byte in the predicate
                     case Long:
                     case Double:
                         res += 8;
                         break;
+                    // Variable sized fields store the size in the predicate followed by the 8 byte padded data
                     case String:
                         String s = value.value();
-                        res += 4; // size
                         res += s.getBytes(Charset.forName("UTF-8")).length;
+                        res += (res % 8 == 0 ? 0 : 8 - (res % 8));
                         break;
                     case ByteArray:
                         byte[] v = value.value();
-                        res += 4; // size
                         res += v.length;
+                        res += (res % 8 == 0 ? 0 : 8 - (res % 8));
+                        break;
                 }
             }
         }
@@ -217,12 +221,12 @@ public class ScanQuery implements Serializable {
                     switch (data.getType()) {
                         case Bool:
                             boolean v = data.value();
-                            unsafe.putByte(res + offset, (byte) (v ? 1 : 0));
-                            offset += 4;
+                            unsafe.putShort(res + offset, (short) (v ? 1 : 0));
+                            offset += 6;
                             break;
                         case Short:
                             unsafe.putShort(res + offset, data.value());
-                            offset += 4;
+                            offset += 6;
                             break;
                         case Int:
                             offset += 2;
@@ -248,7 +252,7 @@ public class ScanQuery implements Serializable {
                             String str = data.value();
                             arr = str.getBytes(Charset.forName("UTF-8"));
                         case ByteArray:
-                            offset += 4;
+                            offset += 2;
                             if (arr == null) arr = data.value();
                             unsafe.putInt(res + offset, arr.length);
                             offset += 4;
@@ -264,7 +268,7 @@ public class ScanQuery implements Serializable {
                     }
                 }
             }
-            return new Pair(size, res);
+            return new Pair<Long, Long>(size, res);
         } catch (Exception e) {
             unsafe.freeMemory(res);
             throw e;
