@@ -73,15 +73,10 @@ public class Transaction {
             }
             queryType = ScanQuery.QueryType.PROJECTION.toUnderlying();
         }
-        //else {
-         //   queryType = ScanQuery.QueryType.FULL.toUnderlying();
-        //}
         Pair<Long, Long> selection = query.serialize();
-        System.out.println("++++++++++++++scan+++++++++++");
         startScan(mImpl, tableName, queryType, selection.first, selection.second, projLength, proj);
         unsafe.freeMemory(selection.second);
         unsafe.freeMemory(proj);
-        System.out.println("++++++++++++++ite+++++++++++");
         return new ScanIterator(mImpl);
     }
 }
