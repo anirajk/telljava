@@ -59,7 +59,7 @@ jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
     config.commitManager = ClientConfig::parseCommitManager(cM);
     config.tellStore = ClientConfig::parseTellStore(tS);
     auto res = new ImplementationDetails(std::move(config));
-    res->scanMemoryManager = std::move(res->clientManager.allocateScanMemory(size_t(chunkCount), size_t(chunkSize)));
+    res->scanMemoryManager = res->clientManager.allocateScanMemory(size_t(chunkCount), size_t(chunkSize));
     return reinterpret_cast<jlong>(res);
 }
 
