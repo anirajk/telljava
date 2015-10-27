@@ -61,22 +61,23 @@ struct ImplementationDetails {
         , chunk(std::make_tuple(nullptr, nullptr))
     {}
     ScanArgs scanArgs;
-    std::atomic<const tell::commitmanager::SnapshotDescriptor*> snapshot;
+    std::unique_ptr<tell::commitmanager::SnapshotDescriptor> snapshot;
     std::tuple<const char*, const char*> chunk;
     void run(tell::store::ClientHandle& handle) {
-        auto tx = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
-        runTx(handle, tx);
+        snapshot = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
+        runTx(handle);
     }
     void run(uint64_t baseVersion, tell::store::ClientHandle& handle) {
         using namespace tell::commitmanager;
-        auto desc = SnapshotDescriptor::create(0, baseVersion, baseVersion, nullptr);
-        auto tx = handle.startTransaction(tell::store::TransactionType::ANALYTICAL, std::move(desc));
-        runTx(handle, tx);
+        snapshot = SnapshotDescriptor::create(0, baseVersion, baseVersion, nullptr);
+        runTx(handle);
     }
-    void scan(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
+    void scan(tell::store::ClientHandle& handle) {
         auto tableResp = handle.getTable(scanArgs.tableName);
         auto table = tableResp->get();
-        auto scanResult = tx.scan(table, scanMemoryManager, scanArgs.queryType,
+        auto analyticalSnapshot = tell::store::ClientHandle::createAnalyticalSnapshot(snapshot->lowestActiveVersion(),
+                snapshot->baseVersion());
+        auto scanResult = handle.scan(table, *analyticalSnapshot, scanMemoryManager, scanArgs.queryType,
                 scanArgs.selectionLength, scanArgs.selection,
                 scanArgs.queryLength, scanArgs.query);
         txRunner.block();
@@ -86,20 +87,15 @@ struct ImplementationDetails {
         }
         state = TxState::ScanDone;
     }
-    void runTx(tell::store::ClientHandle& handle, tell::store::ClientTransaction& tx) {
-        snapshot.store(&tx.snapshot());
+    void runTx(tell::store::ClientHandle& handle) {
         state = TxState::Initial;
         while (state != TxState::Done) {
             switch (state.load()) {
                 case TxState::Initial:
                     break;
                 case TxState::Commit:
-                    tx.commit();
-                    state = TxState::Done;
-                    txRunner.unblock();
-                    return;
                 case TxState::Abort:
-                    tx.abort();
+                    handle.commit(*snapshot);
                     state = TxState::Done;
                     txRunner.unblock();
                     return;
@@ -107,7 +103,7 @@ struct ImplementationDetails {
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
                     std::terminate();
                 case TxState::Scan:
-                    scan(handle, tx);
+                    scan(handle);
                     break;
                 case TxState::ScanDone:
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
@@ -172,7 +168,7 @@ jboolean Java_ch_ethz_tell_Transaction_commit(JNIEnv*, jclass, jlong ptr) {
 
 jlong Java_ch_ethz_tell_Transaction_getTransactionId(JNIEnv *, jclass, jlong ptr) {
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
-    return impl->snapshot.load()->baseVersion();
+    return impl->snapshot->baseVersion();
 }
 
 void Java_ch_ethz_tell_Transaction_abort(JNIEnv*, jclass, jlong ptr) {
