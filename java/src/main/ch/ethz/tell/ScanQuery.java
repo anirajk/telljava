@@ -116,10 +116,18 @@ public class ScanQuery implements Serializable {
         }
     }
 
+    private int partitionKey;
+    private int partitionValue;
     private ArrayList<CNFCLause> selections;
     private ArrayList<Integer> projections;
 
     public ScanQuery() {
+        this(0, 0);
+    }
+
+    public ScanQuery(int partitionKey, int partitionValue) {
+        this.partitionKey = partitionKey;
+        this.partitionValue = partitionValue;
         this.selections = new ArrayList<>();
         this.projections = new ArrayList<>();
     }
@@ -155,7 +163,7 @@ public class ScanQuery implements Serializable {
     }
 
     private final long size(TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> map) {
-        long res = 8 + 8*map.size();
+        long res = 16 + 8*map.size();
         for (Map.Entry<Short, ArrayList<Pair<Predicate, Byte>>> e : map.entrySet()) {
             for (Pair<Predicate, Byte> p : e.getValue()) {
                 res += 8;
@@ -201,7 +209,9 @@ public class ScanQuery implements Serializable {
         long size = this.size(map);
         long res = unsafe.allocateMemory(size);
         unsafe.putLong(res, map.size());
-        long offset = 8;
+        unsafe.putInt(res + 8, partitionKey);
+        unsafe.putInt(res + 12, partitionValue);
+        long offset = 16;
         try {
             for (Map.Entry<Short, ArrayList<Pair<Predicate, Byte>>> e : map.entrySet()) {
                 // Column Id
