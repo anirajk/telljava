@@ -37,7 +37,8 @@ enum class TxState {
     Abort,
     Done,
     Scan,
-    ScanDone
+    ScanDone,
+    GetSchemaByName
 };
 
 struct ScanArgs {
@@ -59,10 +60,13 @@ struct ImplementationDetails {
         , scanMemoryManager(scanMemoryManager)
         , snapshot(nullptr)
         , chunk(std::make_tuple(nullptr, nullptr))
+        , schema(nullptr)
     {}
     ScanArgs scanArgs;
     std::unique_ptr<tell::commitmanager::SnapshotDescriptor> snapshot;
     std::tuple<const char*, const char*> chunk;
+    crossbow::string tableName;
+    std::unique_ptr<tell::store::Schema> schema;
     void run(tell::store::ClientHandle& handle) {
         snapshot = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
         runTx(handle);
@@ -87,6 +91,12 @@ struct ImplementationDetails {
         }
         state = TxState::ScanDone;
     }
+    void openTable(tell::store::ClientHandle& handle) {
+        auto res = handle.getTable(tableName);
+        auto table = res->get();
+        schema.reset(new tell::store::Schema(table.record().schema()));
+        state = TxState::Initial;
+    }
     void runTx(tell::store::ClientHandle& handle) {
         state = TxState::Initial;
         while (state != TxState::Done) {
@@ -108,6 +118,9 @@ struct ImplementationDetails {
                 case TxState::ScanDone:
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
                     std::terminate();
+                case TxState::GetSchemaByName:
+                    openTable(handle);
+                    break;
             }
             txRunner.block();
         }
@@ -115,6 +128,19 @@ struct ImplementationDetails {
 };
 
 } // anonymous namespace
+
+jlong JNICALL Java_ch_ethz_tell_Transaction_schemaForTableImpl (JNIEnv *env, jclass, jlong ptr, jstring tableName) {
+    auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    if (impl->state != TxState::Initial) {
+        std::cerr << "Illegal state!\n";
+        std::terminate();
+    }
+    impl->tableName = to_string(env, tableName);
+    impl->state = TxState::GetSchemaByName;
+    impl->txRunner.unblock();
+    impl->txRunner.wait();
+    return reinterpret_cast<jlong>(impl->schema.release());
+}
 
 jboolean Java_ch_ethz_tell_ScanIterator_next(JNIEnv* env, jclass, jlong ptr) {
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
