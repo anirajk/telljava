@@ -208,7 +208,8 @@ public class ScanQuery implements Serializable {
         sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
         long size = this.size(map);
         long res = unsafe.allocateMemory(size);
-        unsafe.putLong(res, map.size());
+        unsafe.putInt(res, map.size());
+        unsafe.putInt(res + 4, selections.size());
         unsafe.putInt(res + 8, partitionKey);
         unsafe.putInt(res + 12, partitionValue);
         long offset = 16;
