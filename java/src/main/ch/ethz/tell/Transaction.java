@@ -65,6 +65,12 @@ public class Transaction {
                                          long queryLength,
                                          long query);
 
+
+    private static native long schemaForTableImpl(long impl, String name);
+    public Schema schemaForTable(String name) {
+        return new Schema(schemaForTableImpl(mImpl, name));
+    }
+
     
     public ScanIterator scan(ScanQuery query,
                              String tableName,

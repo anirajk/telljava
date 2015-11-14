@@ -58,6 +58,10 @@ public class Schema {
         mImpl = construct();
     }
 
+    public Schema(long impl) {
+        mImpl = impl;
+    }
+
     @Override
     protected void finalize() {
         destruct(mImpl);
