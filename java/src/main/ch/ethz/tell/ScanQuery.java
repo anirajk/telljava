@@ -55,10 +55,22 @@ public class ScanQuery implements Serializable {
 
     }
 
+    public enum AggrType {
+        MIN             ((byte)1),
+        MAX             ((byte)2),
+        SUM             ((byte)3),
+        CNT             ((byte)4);
+        private byte value;
+
+        AggrType(byte value) {this.value = value;}
+
+        public final byte toUnderlying() {return value; }
+    }
+
     public enum QueryType {
         FULL            ((byte)1),
         PROJECTION      ((byte)2),
-        AGGREGATIOIN    ((byte)3);
+        AGGREGATION     ((byte)3);
         private byte value;
 
         QueryType(byte value) {
@@ -70,7 +82,7 @@ public class ScanQuery implements Serializable {
         }
     }
 
-    private class Predicate implements Serializable {
+    public class Predicate implements Serializable {
         private static final long serialVersionUID = 7526472295622776144L;
 
         public CmpType type;
@@ -78,47 +90,16 @@ public class ScanQuery implements Serializable {
         public PredicateType value;
     }
 
-    public class CNFCLause implements Serializable {
-        private static final long serialVersionUID = 7526472295622776140L;
+    public class Aggregation implements Serializable {
+        private static final long serialVersionUID = 7526472295622776150L;
 
-        private ArrayList<Predicate> predicates;
-
-        public CNFCLause() {
-            this.predicates = new ArrayList<>();
-        }
-
-        public final void addPredicate(CmpType type, short field, PredicateType value) {
-            Predicate p = new Predicate();
-            p.type = type;
-            p.field = field;
-            p.value = value;
-            predicates.add(p);
-        }
-
-        public final int numPredicates() {
-            return predicates.size();
-        }
-
-        public final CmpType type(int idx) {
-            return predicates.get(idx).type;
-        }
-
-        public final short field(int idx) {
-            return predicates.get(idx).field;
-        }
-
-        public final PredicateType value(int idx) {
-            return predicates.get(idx).value;
-        }
-
-        public final Predicate get(int idx) {
-            return predicates.get(idx);
-        }
+        public AggrType type;
+        public short field;
     }
 
     private int partitionKey;
     private int partitionValue;
-    private ArrayList<CNFCLause> selections;
+    private ArrayList<CNFClause> selections;
     private ArrayList<Integer> projections;
 
     public ScanQuery() {
@@ -132,7 +113,7 @@ public class ScanQuery implements Serializable {
         this.projections = new ArrayList<>();
     }
 
-    public void addSelection(CNFCLause clause) {
+    public void addSelection(CNFClause clause) {
         selections.add(clause);
     }
 
@@ -143,7 +124,7 @@ public class ScanQuery implements Serializable {
     private TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> prepareSerialization() {
         TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> res = new TreeMap<>();
         byte pos = 0;
-        for (CNFCLause selection : selections) {
+        for (CNFClause selection : selections) {
             int predicates = selection.numPredicates();
             for (int i = 0; i < predicates; ++i) {
                 short cId = selection.field(i);
@@ -284,6 +265,45 @@ public class ScanQuery implements Serializable {
             unsafe.freeMemory(res);
             throw e;
         }
+    }
+}
+
+public class CNFClause implements Serializable {
+
+    private static final long serialVersionUID = 7526472295622776140L;
+
+    private ArrayList<Predicate> predicates;
+
+    public CNFClause() {
+        this.predicates = new ArrayList<>();
+    }
+
+    public final void addPredicate(CmpType type, short field, PredicateType value) {
+        Predicate p = new Predicate();
+        p.type = type;
+        p.field = field;
+        p.value = value;
+        predicates.add(p);
+    }
+
+    public final int numPredicates() {
+        return predicates.size();
+    }
+
+    public final CmpType type(int idx) {
+        return predicates.get(idx).type;
+    }
+
+    public final short field(int idx) {
+        return predicates.get(idx).field;
+    }
+
+    public final PredicateType value(int idx) {
+        return predicates.get(idx).value;
+    }
+
+    public final Predicate get(int idx) {
+        return predicates.get(idx);
     }
 }
 

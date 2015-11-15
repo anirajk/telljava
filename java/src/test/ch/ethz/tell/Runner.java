@@ -29,7 +29,7 @@ public class Runner {
         short fieldPos = 0;
         ScanQuery query = new ScanQuery();
 //        query.addProjection(fieldPos);
-//        ScanQuery.CNFCLause clause = query.new CNFCLause();
+//        ScanQuery.CNFClause clause = query.new CNFClause();
 //        clause.addPredicate(ScanQuery.CmpType.GREATER, fieldPos, PredicateType.create(0));
 //        query.addSelection(clause);
 
