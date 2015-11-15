@@ -34,10 +34,9 @@ public class Runner {
 //        query.addSelection(clause);
 
         String tblName = "testTable";
-        short[] proj = null;
 
         // query itself
-        ScanIterator scanIt = trx.scan(query, tblName, proj);
+        ScanIterator scanIt = trx.scan(query, tblName);
 
         Schema schema = new Schema();
         schema.addField(Schema.FieldType.INT, "number", true);

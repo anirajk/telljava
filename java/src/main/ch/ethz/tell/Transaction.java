@@ -72,27 +72,33 @@ public class Transaction {
     }
 
     
-    public ScanIterator scan(ScanQuery query,
-                             String tableName,
-                             short[] projection)
+    public ScanIterator scan(ScanQuery scanQuery, String tableName)
     {
-        sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
+        Pair<Long, Long> selection = scanQuery.serializeSelection();
         byte queryType = ScanQuery.QueryType.FULL.toUnderlying();
-        long projLength = 0;
-        long proj = 0;
-        if (projection != null) {
-            Arrays.sort(projection, 0, projection.length);
-            projLength = projection.length * 2;
-            proj = unsafe.allocateMemory(projLength);
-            for (int i = 0; i < projection.length; ++i) {
-                unsafe.putShort(proj + 2*i, projection[i]);
-            }
+        long queryLength = 0;
+        long query = 0;
+
+        if (scanQuery.isProjection()) {
             queryType = ScanQuery.QueryType.PROJECTION.toUnderlying();
+            Pair<Long, Long> projection = scanQuery.serializeProjection();
+            queryLength = projection.first;
+            query = projection.second;
         }
-        Pair<Long, Long> selection = query.serialize();
-        startScan(mImpl, tableName, queryType, selection.first, selection.second, projLength, proj);
+
+        if (scanQuery.isAggregation()) {
+            queryType = ScanQuery.QueryType.AGGREGATION.toUnderlying();
+            Pair<Long, Long> aggregation = scanQuery.serializeAggregation();
+            queryLength = aggregation.first;
+            query = aggregation.second;
+        }
+
+        startScan(mImpl, tableName, queryType, selection.first, selection.second, queryLength, query);
+
+        sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
         unsafe.freeMemory(selection.second);
-        unsafe.freeMemory(proj);
+        if (query > 0)
+            unsafe.freeMemory(query);
         return new ScanIterator(mImpl);
     }
 }

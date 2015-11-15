@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Collections;
 
 public class ScanQuery implements Serializable {
 
@@ -86,7 +87,7 @@ public class ScanQuery implements Serializable {
     private int partitionKey;
     private int partitionValue;
     private List<CNFClause> selections;
-    private List<Integer> projections;
+    private List<Short> projections;
     private List<Aggregation> aggregations;
 
     public ScanQuery() {
@@ -105,12 +106,30 @@ public class ScanQuery implements Serializable {
         selections.add(clause);
     }
 
-    public void addProjection(int field) {
+    public boolean addProjection(short field) {
+        if (this.aggregations.size() > 0)     // we cannot have aggregations and projections at the same time!
+            return false;
         projections.add(field);
+        return true;
     }
 
-    public void addAggregation(Aggregation aggregation) {
+    public boolean addAggregation(AggrType type, short field) {
+        return addAggregation(new Aggregation(type, field));
+    }
+
+    public boolean addAggregation(Aggregation aggregation) {
+        if (this.projections.size() > 0)     // we cannot have aggregations and projections at the same time!
+            return false;
         aggregations.add(aggregation);
+        return true;
+    }
+
+    public boolean isProjection() {
+        return this.projections.size() > 0;
+    }
+
+    public boolean isAggregation() {
+        return this.aggregations.size() > 0;
     }
 
     private Map<Short, List<Pair<Predicate, Byte>>> prepareSelectionSerialization() {
@@ -135,7 +154,7 @@ public class ScanQuery implements Serializable {
         return res;
     }
 
-    private final long size(Map<Short, List<Pair<Predicate, Byte>>> selectionMap) {
+    private final long selctionSize(Map<Short, List<Pair<Predicate, Byte>>> selectionMap) {
         long res = 16 + 8*selectionMap.size();
         for (Map.Entry<Short, List<Pair<Predicate, Byte>>> e : selectionMap.entrySet()) {
             for (Pair<Predicate, Byte> p : e.getValue()) {
@@ -176,10 +195,10 @@ public class ScanQuery implements Serializable {
      *
      * @returns pair(size, address)
      */
-    final Pair<Long, Long> serialize() {
+    final Pair<Long, Long> serializeSelection() {
         Map<Short, List<Pair<Predicate, Byte>>> selectionMap = prepareSelectionSerialization();
         sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
-        long size = this.size(selectionMap);
+        long size = this.selctionSize(selectionMap);
         long res = unsafe.allocateMemory(size);
         unsafe.putInt(res, selectionMap.size());
         unsafe.putInt(res + 4, selections.size());
@@ -251,6 +270,53 @@ public class ScanQuery implements Serializable {
                             break;
                     }
                 }
+            }
+            return new Pair<Long, Long>(size, res);
+        } catch (Exception e) {
+            unsafe.freeMemory(res);
+            throw e;
+        }
+    }
+
+    /**
+     * See tellstore/tests/client/TestClient.cpp for examples.
+     *
+     * @returns pair(size, address)
+     */
+    final Pair<Long, Long> serializeProjection() {
+        Collections.sort(this.projections);
+        sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
+        long size = 2*this.projections.size();
+        long res = unsafe.allocateMemory(size);
+        try {
+            int i = 0;
+            for (Short s: this.projections) {
+                unsafe.putShort(res + i, s);
+                i += 2;
+            }
+            return new Pair<Long, Long>(size, res);
+        } catch (Exception e) {
+            unsafe.freeMemory(res);
+            throw e;
+        }
+    }
+
+    /**
+     * See tellstore/tests/client/TestClient.cpp for examples.
+     *
+     * @returns pair(size, address)
+     */
+    final Pair<Long, Long> serializeAggregation() {
+        Collections.sort(this.aggregations);
+        sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
+        long size = 4*this.aggregations.size();
+        long res = unsafe.allocateMemory(size);
+        try {
+            int i = 0;
+            for (Aggregation aggr: this.aggregations) {
+                unsafe.putShort(res + i, aggr.field);
+                unsafe.putShort(res + i + 2, aggr.type.toUnderlying());
+                i += 4;
             }
             return new Pair<Long, Long>(size, res);
         } catch (Exception e) {

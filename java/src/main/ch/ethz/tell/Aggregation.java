@@ -27,9 +27,22 @@ import java.io.Serializable;
 import ch.ethz.tell.ScanQuery.CmpType;
 import ch.ethz.tell.ScanQuery.AggrType;
 
-public class Aggregation implements Serializable {
+public class Aggregation implements Serializable, Comparable<Aggregation> {
     private static final long serialVersionUID = 7526472295622776150L;
+
+    public Aggregation (AggrType type, short field) {
+        this.type = type;
+        this.field = field;
+    }
 
     public AggrType type;
     public short field;
+
+    public int compareTo (Aggregation o2) {
+        Aggregation o1 = this;
+        if (o1.field == o2.field)
+            return ((Byte) o1.type.toUnderlying()).compareTo((Byte) o2.type.toUnderlying());
+        else
+            return ((Short) o1.field).compareTo((Short) o2.field);
+    }
 }
