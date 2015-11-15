@@ -22,6 +22,9 @@ add_jar(telljava
     java/src/main/ch/ethz/tell/PredicateType.java
     java/src/main/ch/ethz/tell/ScanIterator.java
     java/src/main/ch/ethz/tell/ScanQuery.java
+    java/src/main/ch/ethz/tell/CNFClause.java
+    java/src/main/ch/ethz/tell/Predicate.java
+    java/src/main/ch/ethz/tell/Aggregation.java
     java/src/main/ch/ethz/tell/Schema.java
     java/src/main/ch/ethz/tell/Transaction.java
     java/src/main/ch/ethz/tell/Unsafe.java

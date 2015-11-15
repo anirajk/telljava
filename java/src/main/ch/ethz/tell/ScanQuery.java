@@ -24,6 +24,7 @@ package ch.ethz.tell;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
@@ -68,9 +69,9 @@ public class ScanQuery implements Serializable {
     }
 
     public enum QueryType {
-        FULL            ((byte)1),
-        PROJECTION      ((byte)2),
-        AGGREGATION     ((byte)3);
+        FULL((byte) 1),
+        PROJECTION((byte) 2),
+        AGGREGATION((byte) 3);
         private byte value;
 
         QueryType(byte value) {
@@ -82,25 +83,11 @@ public class ScanQuery implements Serializable {
         }
     }
 
-    public class Predicate implements Serializable {
-        private static final long serialVersionUID = 7526472295622776144L;
-
-        public CmpType type;
-        public short field;
-        public PredicateType value;
-    }
-
-    public class Aggregation implements Serializable {
-        private static final long serialVersionUID = 7526472295622776150L;
-
-        public AggrType type;
-        public short field;
-    }
-
     private int partitionKey;
     private int partitionValue;
-    private ArrayList<CNFClause> selections;
-    private ArrayList<Integer> projections;
+    private List<CNFClause> selections;
+    private List<Integer> projections;
+    private List<Aggregation> aggregations;
 
     public ScanQuery() {
         this(0, 0);
@@ -111,6 +98,7 @@ public class ScanQuery implements Serializable {
         this.partitionValue = partitionValue;
         this.selections = new ArrayList<>();
         this.projections = new ArrayList<>();
+        this.aggregations = new ArrayList<>();
     }
 
     public void addSelection(CNFClause clause) {
@@ -121,14 +109,18 @@ public class ScanQuery implements Serializable {
         projections.add(field);
     }
 
-    private TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> prepareSerialization() {
-        TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> res = new TreeMap<>();
+    public void addAggregation(Aggregation aggregation) {
+        aggregations.add(aggregation);
+    }
+
+    private Map<Short, List<Pair<Predicate, Byte>>> prepareSelectionSerialization() {
+        Map<Short, List<Pair<Predicate, Byte>>> res = new TreeMap<>();
         byte pos = 0;
         for (CNFClause selection : selections) {
             int predicates = selection.numPredicates();
             for (int i = 0; i < predicates; ++i) {
                 short cId = selection.field(i);
-                ArrayList<Pair<Predicate, Byte>> list;
+                List<Pair<Predicate, Byte>> list = new ArrayList<>();
                 if (res.containsKey(cId)) {
                     list = res.get(cId);
                 } else {
@@ -143,9 +135,9 @@ public class ScanQuery implements Serializable {
         return res;
     }
 
-    private final long size(TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> map) {
-        long res = 16 + 8*map.size();
-        for (Map.Entry<Short, ArrayList<Pair<Predicate, Byte>>> e : map.entrySet()) {
+    private final long size(Map<Short, List<Pair<Predicate, Byte>>> selectionMap) {
+        long res = 16 + 8*selectionMap.size();
+        for (Map.Entry<Short, List<Pair<Predicate, Byte>>> e : selectionMap.entrySet()) {
             for (Pair<Predicate, Byte> p : e.getValue()) {
                 res += 8;
                 PredicateType value = p.first.value;
@@ -185,17 +177,17 @@ public class ScanQuery implements Serializable {
      * @returns pair(size, address)
      */
     final Pair<Long, Long> serialize() {
-        TreeMap<Short, ArrayList<Pair<Predicate, Byte>>> map = prepareSerialization();
+        Map<Short, List<Pair<Predicate, Byte>>> selectionMap = prepareSelectionSerialization();
         sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
-        long size = this.size(map);
+        long size = this.size(selectionMap);
         long res = unsafe.allocateMemory(size);
-        unsafe.putInt(res, map.size());
+        unsafe.putInt(res, selectionMap.size());
         unsafe.putInt(res + 4, selections.size());
         unsafe.putInt(res + 8, partitionKey);
         unsafe.putInt(res + 12, partitionValue);
         long offset = 16;
         try {
-            for (Map.Entry<Short, ArrayList<Pair<Predicate, Byte>>> e : map.entrySet()) {
+            for (Map.Entry<Short, List<Pair<Predicate, Byte>>> e : selectionMap.entrySet()) {
                 // Column Id
                 unsafe.putShort(res + offset, e.getKey());
                 offset += 2;
@@ -265,45 +257,6 @@ public class ScanQuery implements Serializable {
             unsafe.freeMemory(res);
             throw e;
         }
-    }
-}
-
-public class CNFClause implements Serializable {
-
-    private static final long serialVersionUID = 7526472295622776140L;
-
-    private ArrayList<Predicate> predicates;
-
-    public CNFClause() {
-        this.predicates = new ArrayList<>();
-    }
-
-    public final void addPredicate(CmpType type, short field, PredicateType value) {
-        Predicate p = new Predicate();
-        p.type = type;
-        p.field = field;
-        p.value = value;
-        predicates.add(p);
-    }
-
-    public final int numPredicates() {
-        return predicates.size();
-    }
-
-    public final CmpType type(int idx) {
-        return predicates.get(idx).type;
-    }
-
-    public final short field(int idx) {
-        return predicates.get(idx).field;
-    }
-
-    public final PredicateType value(int idx) {
-        return predicates.get(idx).value;
-    }
-
-    public final Predicate get(int idx) {
-        return predicates.get(idx);
     }
 }
 
