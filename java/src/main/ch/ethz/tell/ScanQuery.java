@@ -22,6 +22,8 @@
  */
 package ch.ethz.tell;
 
+import ch.ethz.tell.Schema.FieldType;
+
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -129,8 +131,8 @@ public class ScanQuery implements Serializable {
         return true;
     }
 
-    public boolean addAggregation(AggrType type, short field) {
-        return addAggregation(new Aggregation(type, field));
+    public boolean addAggregation(AggrType type, short field, String name, FieldType fieldType) {
+        return addAggregation(new Aggregation(type, field, name, fieldType));
     }
 
     public boolean addAggregation(Aggregation aggregation) {
@@ -339,6 +341,21 @@ public class ScanQuery implements Serializable {
             unsafe.freeMemory(res);
             throw e;
         }
+    }
+
+    /**
+     * @return a result schema for the result, if it is a projection or aggregation
+     */
+    final Schema getAggregationResultSchema() {
+        if (aggregations.size() < 0) {
+            Schema result = new Schema();
+            Collections.sort(aggregations);
+            for (Aggregation aggr: aggregations) {
+                result.addField(aggr.fieldType, aggr.name, true);
+            }
+            return result;
+        }
+        throw new RuntimeException("can only get result schema for aggregation!");
     }
 }
 

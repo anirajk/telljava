@@ -24,19 +24,23 @@ package ch.ethz.tell;
 
 import java.io.Serializable;
 
-import ch.ethz.tell.ScanQuery.CmpType;
 import ch.ethz.tell.ScanQuery.AggrType;
+import ch.ethz.tell.Schema.FieldType;
 
 public class Aggregation implements Serializable, Comparable<Aggregation> {
     private static final long serialVersionUID = 7526472295622776150L;
 
-    public Aggregation (AggrType type, short field) {
+    public Aggregation (AggrType type, short field, String name, FieldType fieldType) {
         this.type = type;
         this.field = field;
+        this.name = name;
+        this.fieldType = fieldType;
     }
 
     public AggrType type;
     public short field;
+    public String name; // name with which you will find the aggregation in the result
+    public FieldType fieldType; // type of the resulting aggregation
 
     public int compareTo (Aggregation o2) {
         Aggregation o1 = this;
