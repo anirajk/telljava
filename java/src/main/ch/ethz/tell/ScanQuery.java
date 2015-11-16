@@ -94,12 +94,28 @@ public class ScanQuery implements Serializable {
         this(0, 0);
     }
 
+    /**
+     * creates a scan query object with partition key and partition value on primary key, which means all tuples with
+     * (primary-key mod partition-key) == partition-value
+     * are returned.
+     *
+     * @param partitionKey the number of (Spark-) partitions to be scanned
+     * @param partitionValue the partition index to look for
+     */
     public ScanQuery(int partitionKey, int partitionValue) {
         this.partitionKey = partitionKey;
         this.partitionValue = partitionValue;
         this.selections = new ArrayList<>();
         this.projections = new ArrayList<>();
         this.aggregations = new ArrayList<>();
+    }
+
+    public ScanQuery(int partitionKey, int partitionValue, ScanQuery other) {
+        this.partitionKey = partitionKey;
+        this.partitionValue = partitionValue;
+        this.selections = other.selections;
+        this.projections = other.projections;
+        this.aggregations = other.aggregations;
     }
 
     public void addSelection(CNFClause clause) {

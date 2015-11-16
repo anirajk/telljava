@@ -95,4 +95,7 @@ public class Schema {
         return fromUnderlyings(variableSizedFieldsImpl(mImpl));
     }
 
+    private final native short idOfImpl(long self, String columnName);
+    public final short idOf(String columnName) { return idOfImpl(mImpl, columnName); }
+
 }

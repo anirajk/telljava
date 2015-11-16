@@ -69,3 +69,8 @@ jintArray Java_ch_ethz_tell_Schema_variableSizedFieldsImpl(JNIEnv* env, jobject,
     return toIntArray(env, s->varSizeFields());
 }
 
+jshort Java_ch_ethz_tell_Schema_idOfImpl (JNIEnv* env, jobject, jlong self, jstring columnName) {
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    return s->idOf(to_string(env, columnName));
+}
+
