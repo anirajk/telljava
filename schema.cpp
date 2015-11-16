@@ -74,3 +74,33 @@ jshort Java_ch_ethz_tell_Schema_idOfImpl (JNIEnv* env, jobject, jlong self, jstr
     return s->idOf(to_string(env, columnName));
 }
 
+jshort Java_ch_ethz_tell_Schema_typeOfImpl (JNIEnv* env, jobject, jlong self, jstring columName) {
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    auto field = s->getFieldFromName(to_string(env, columName));
+    return static_cast<short>(field.type());
+}
+
+jboolean Java_ch_ethz_tell_Schema_nullabiltyOfImpl (JNIEnv* env, jobject, jlong self, jstring columName) {
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    auto field = s->getFieldFromName(to_string(env, columName));
+    return field.isNotNull();
+}
+
+jobjectArray Java_ch_ethz_tell_Schema_getFieldNamesImpl (JNIEnv* env, jobject, jlong self) {
+    std::vector<std::string> resultVec;
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    for (auto &field: s->fixedSizeFields())
+        resultVec.emplace_back(field.name().c_str());
+    for (auto &field: s->varSizeFields())
+        resultVec.emplace_back(field.name().c_str());
+
+    jclass cls = env->FindClass("java/lang/String");
+    jobject job = env->AllocObject(cls);
+    auto result = env->NewObjectArray(resultVec.size(), cls, job);
+    for (unsigned i = 0; i < resultVec.size(); ++i) {
+        env->SetObjectArrayElement(result, jsize(i), jstring(resultVec[i].c_str()));
+    }
+    return result;
+}
+
+

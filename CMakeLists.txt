@@ -26,6 +26,7 @@ add_jar(telljava
     java/src/main/ch/ethz/tell/Predicate.java
     java/src/main/ch/ethz/tell/Aggregation.java
     java/src/main/ch/ethz/tell/Schema.java
+    java/src/main/ch/ethz/tell/Field.java
     java/src/main/ch/ethz/tell/Transaction.java
     java/src/main/ch/ethz/tell/Unsafe.java
     java/src/main/ch/ethz/tell/UnsafeException.java

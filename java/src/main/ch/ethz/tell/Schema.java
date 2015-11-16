@@ -22,18 +22,20 @@
  */
 package ch.ethz.tell;
 
+import ch.ethz.tell.Field;
+
 public class Schema {
 
     public enum FieldType {
-        NOTYPE	 ((short)0),
-        NULLTYPE ((short)1),
-        SMALLINT ((short)2),
-        INT	 ((short)3),
-        BIGINT	 ((short)4),
-        FLOAT	 ((short)5),
-        DOUBLE	 ((short)6),
-        TEXT	 ((short)7), // this is used for CHAR and VARCHAR as well
-        BLOB	 ((short)8);
+        NOTYPE((short) 0),
+        NULLTYPE((short) 1),
+        SMALLINT((short) 2),
+        INT((short) 3),
+        BIGINT((short) 4),
+        FLOAT((short) 5),
+        DOUBLE((short) 6),
+        TEXT((short) 7), // this is used for CHAR and VARCHAR as well
+        BLOB((short) 8);
         private short value;
 
         FieldType(short value) {
@@ -97,5 +99,20 @@ public class Schema {
 
     private final native short idOfImpl(long self, String columnName);
     public final short idOf(String columnName) { return idOfImpl(mImpl, columnName); }
+
+    private final native short typeOfImpl(long self, String columnName);
+    private final native boolean nullabiltyOfImpl(long self, String columnName);
+
+    public final Field getFieldByName(String columnName) {
+        Field result = new Field();
+        result.index = idOfImpl(mImpl, columnName);
+        result.fieldName = columnName;
+        result.type.fromUnderlying(typeOfImpl(mImpl, columnName));
+        result.nullable = nullabiltyOfImpl(mImpl, columnName);
+        return result;
+    }
+
+    private native final String[] getFieldNamesImpl(long self);
+    public final String[] getFieldNames() { return getFieldNamesImpl(mImpl); }
 
 }
