@@ -29,7 +29,7 @@ public class Field implements Serializable{
     private static final long serialVersionUID = 7526472295622776160L;
 
     public short index;
-    public FieldType type;
+    public FieldType fieldType;
     public String fieldName;
     public boolean nullable;
 
