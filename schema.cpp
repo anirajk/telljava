@@ -94,11 +94,11 @@ jobjectArray Java_ch_ethz_tell_Schema_getFieldNamesImpl (JNIEnv* env, jobject, j
     for (auto &field: s->varSizeFields())
         resultVec.emplace_back(field.name().c_str());
 
-    jclass cls = env->FindClass("java/lang/String");
-    jobject job = env->AllocObject(cls);
-    auto result = env->NewObjectArray(resultVec.size(), cls, job);
+    auto cls = env->FindClass("java/lang/String");
+    auto init = env->NewStringUTF("");
+    auto result = env->NewObjectArray(resultVec.size(), cls, init);
     for (unsigned i = 0; i < resultVec.size(); ++i) {
-        env->SetObjectArrayElement(result, jsize(i), jstring(resultVec[i].c_str()));
+        env->SetObjectArrayElement(result, jsize(i), env->NewStringUTF(resultVec[i].c_str()));
     }
     return result;
 }
