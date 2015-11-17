@@ -25,7 +25,7 @@ package ch.ethz.tell;
 import java.io.Serializable;
 
 import ch.ethz.tell.ScanQuery.AggrType;
-import ch.ethz.tell.Schema.FieldType;
+import ch.ethz.tell.Field.FieldType;
 
 public class Aggregation implements Serializable, Comparable<Aggregation> {
     private static final long serialVersionUID = 7526472295622776150L;

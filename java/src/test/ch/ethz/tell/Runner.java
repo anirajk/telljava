@@ -2,6 +2,8 @@ package ch.ethz.tell;
 
 import java.io.UnsupportedEncodingException;
 
+import ch.ethz.tell.Field.FieldType;
+
 /**
  */
 public class Runner {
@@ -39,10 +41,10 @@ public class Runner {
         ScanIterator scanIt = trx.scan(query, tblName);
 
         Schema schema = new Schema();
-        schema.addField(Schema.FieldType.INT, "number", true);
-        schema.addField(Schema.FieldType.TEXT, "text1", true);
-        schema.addField(Schema.FieldType.BIGINT, "largenumber", true);
-        schema.addField(Schema.FieldType.TEXT, "text2", true);
+        schema.addField(FieldType.INT, "number", true);
+        schema.addField(FieldType.TEXT, "text1", true);
+        schema.addField(FieldType.BIGINT, "largenumber", true);
+        schema.addField(FieldType.TEXT, "text2", true);
 
         int cnt = 0;
         while (scanIt.next()) {
@@ -60,7 +62,7 @@ public class Runner {
         int cnt = 0;
         while (offset != length) {
             offset += 8;
-            for (Schema.FieldType fieldType : schema.fixedSizeFields()) {
+            for (FieldType fieldType : schema.fixedSizeFields()) {
                 switch (fieldType) {
                     case SMALLINT:
                         //TODO not a 16 bit
@@ -85,7 +87,7 @@ public class Runner {
                 }
             }
             try {
-                for (Schema.FieldType fieldType : schema.variableSizedFields()) {
+                for (FieldType fieldType : schema.variableSizedFields()) {
                     int ln = unsafe.getInt(address + offset);
                     offset += 4;
                     String str = readString(unsafe, address + offset, ln);

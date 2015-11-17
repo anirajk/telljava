@@ -22,7 +22,7 @@
  */
 package ch.ethz.tell;
 
-import ch.ethz.tell.Schema.FieldType;
+import ch.ethz.tell.Field.FieldType;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;

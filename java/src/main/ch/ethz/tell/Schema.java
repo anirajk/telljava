@@ -23,33 +23,9 @@
 package ch.ethz.tell;
 
 import ch.ethz.tell.Field;
+import ch.ethz.tell.Field.FieldType;
 
 public class Schema {
-
-    public enum FieldType {
-        NOTYPE((short) 0),
-        NULLTYPE((short) 1),
-        SMALLINT((short) 2),
-        INT((short) 3),
-        BIGINT((short) 4),
-        FLOAT((short) 5),
-        DOUBLE((short) 6),
-        TEXT((short) 7), // this is used for CHAR and VARCHAR as well
-        BLOB((short) 8);
-        private short value;
-
-        FieldType(short value) {
-            this.value = value;
-        }
-
-        public final short toUnderlying() {
-            return value;
-        }
-
-        public final void fromUnderlying(short value) {
-            this.value = value;
-        }
-    }
 
     private long mImpl;
 
