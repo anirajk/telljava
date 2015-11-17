@@ -83,7 +83,7 @@ public class Schema {
         Field result = new Field();
         result.index = idOfImpl(mImpl, columnName);
         result.fieldName = columnName;
-        result.fieldType.fromUnderlying(typeOfImpl(mImpl, columnName));
+        result.fieldType = FieldType.fromUnderlying(typeOfImpl(mImpl, columnName));
         result.nullable = nullabiltyOfImpl(mImpl, columnName);
         return result;
     }

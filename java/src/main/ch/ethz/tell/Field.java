@@ -43,6 +43,7 @@ public class Field implements Serializable{
         DOUBLE((short) 6),
         TEXT((short) 7), // this is used for CHAR and VARCHAR as well
         BLOB((short) 8);
+
         private short value;
 
         FieldType(short value) {
@@ -53,8 +54,30 @@ public class Field implements Serializable{
             return value;
         }
 
-        public final void fromUnderlying(short value) {
-            this.value = value;
+        public static FieldType fromUnderlying(short value) {
+            switch (value) {
+                case 0:
+                    return FieldType.NOTYPE;
+                case 1:
+                    return FieldType.NULLTYPE;
+                case 2:
+                    return FieldType.SMALLINT;
+                case 3:
+                    return FieldType.INT;
+                case 4:
+                    return FieldType.BIGINT;
+                case 5:
+                    return FieldType.FLOAT;
+                case 6:
+                    return FieldType.DOUBLE;
+                case 7:
+                    return FieldType.TEXT;
+                case 8:
+                    return FieldType.BLOB;
+                default:
+                    return FieldType.NOTYPE;
+            }
+
         }
     }
 }
