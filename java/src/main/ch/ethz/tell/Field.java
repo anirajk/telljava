@@ -22,9 +22,14 @@
  */
 package ch.ethz.tell;
 
+import java.io.Serializable;
+
 import ch.ethz.tell.Schema.FieldType;
 
-public class Field {
+public class Field implements Serializable{
+
+    private static final long serialVersionUID = 7526472295622776160L;
+
     public short index;
     public FieldType type;
     public String fieldName;
