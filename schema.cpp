@@ -87,7 +87,7 @@ jboolean Java_ch_ethz_tell_Schema_nullabiltyOfImpl (JNIEnv* env, jobject, jlong 
 }
 
 jobjectArray Java_ch_ethz_tell_Schema_getFieldNamesImpl (JNIEnv* env, jobject, jlong self) {
-    std::vector<std::string> resultVec;
+    std::vector<const char *> resultVec;
     auto s = reinterpret_cast<tell::store::Schema*>(self);
     for (auto &field: s->fixedSizeFields())
         resultVec.emplace_back(field.name().c_str());
@@ -98,7 +98,7 @@ jobjectArray Java_ch_ethz_tell_Schema_getFieldNamesImpl (JNIEnv* env, jobject, j
     auto init = env->NewStringUTF("");
     auto result = env->NewObjectArray(resultVec.size(), cls, init);
     for (unsigned i = 0; i < resultVec.size(); ++i) {
-        env->SetObjectArrayElement(result, static_cast<int>(i), env->NewStringUTF(resultVec[i].c_str()));
+        env->SetObjectArrayElement(result, static_cast<int>(i), env->NewStringUTF(resultVec[i]));
     }
     return result;
 }
