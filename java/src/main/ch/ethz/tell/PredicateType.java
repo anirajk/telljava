@@ -67,7 +67,7 @@ public interface PredicateType {
 
         private boolean val;
 
-        BoolType(boolean val) {
+        public BoolType(boolean val) {
             this.val = val;
         }
 
@@ -88,7 +88,7 @@ public interface PredicateType {
 
         private short val;
 
-        ShortType(short val) {
+        public ShortType(short val) {
             this.val = val;
         }
 
