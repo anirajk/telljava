@@ -87,18 +87,18 @@ jboolean Java_ch_ethz_tell_Schema_nullabiltyOfImpl (JNIEnv* env, jobject, jlong 
 }
 
 jobjectArray Java_ch_ethz_tell_Schema_getFieldNamesImpl (JNIEnv* env, jobject, jlong self) {
-    std::vector<const char *> resultVec;
     auto s = reinterpret_cast<tell::store::Schema*>(self);
-    for (auto &field: s->fixedSizeFields())
-        resultVec.emplace_back(field.name().c_str());
-    for (auto &field: s->varSizeFields())
-        resultVec.emplace_back(field.name().c_str());
-
     auto cls = env->FindClass("java/lang/String");
     auto init = env->NewStringUTF("");
-    auto result = env->NewObjectArray(resultVec.size(), cls, init);
-    for (unsigned i = 0; i < resultVec.size(); ++i) {
-        env->SetObjectArrayElement(result, static_cast<int>(i), env->NewStringUTF(resultVec[i]));
+    auto result = env->NewObjectArray(s->fixedSizeFields().size() + s->varSizeFields().size(), cls, init);
+    int i = 0;
+    for (auto &field: s->fixedSizeFields()) {
+        env->SetObjectArrayElement(result, i, env->NewStringUTF(field.name().c_str()));
+        ++i;
+    }
+    for (auto &field: s->varSizeFields()) {
+        env->SetObjectArrayElement(result, i, env->NewStringUTF(field.name().c_str()));
+        ++i;
     }
     return result;
 }
