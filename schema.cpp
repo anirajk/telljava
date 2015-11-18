@@ -74,6 +74,12 @@ jshort Java_ch_ethz_tell_Schema_idOfImpl (JNIEnv* env, jobject, jlong self, jstr
     return s->idOf(to_string(env, columnName));
 }
 
+jlong Java_ch_ethz_tell_Schema_getHeaderLengthImpl (JNIEnv* env, jobject, jlong self) {
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    tell::store::Record r (*s);
+    return r.headerSize();
+}
+
 jshort Java_ch_ethz_tell_Schema_typeOfImpl (JNIEnv* env, jobject, jlong self, jstring columName) {
     auto s = reinterpret_cast<tell::store::Schema*>(self);
     auto field = s->getFieldFromName(to_string(env, columName));

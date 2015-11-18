@@ -76,6 +76,9 @@ public class Schema {
     private final native short idOfImpl(long self, String columnName);
     public final short idOf(String columnName) { return idOfImpl(mImpl, columnName); }
 
+    private final native long getHeaderLengthImpl(long self);
+    public final long getHeaderLength() { return getHeaderLengthImpl(mImpl);    }
+
     private final native short typeOfImpl(long self, String columnName);
     private final native boolean nullabiltyOfImpl(long self, String columnName);
 

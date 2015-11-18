@@ -143,12 +143,15 @@ jlong JNICALL Java_ch_ethz_tell_Transaction_schemaForTableImpl (JNIEnv *env, jcl
 }
 
 jboolean Java_ch_ethz_tell_ScanIterator_next(JNIEnv* env, jclass, jlong ptr) {
+    std::cout << "Enter ScanIterator.next()\n";
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
     impl->txRunner.unblock();
     impl->txRunner.wait();
     if (impl->state == TxState::ScanDone) {
+        std::cout << "Leave ScanIterator.next()\n";
         return false;
     }
+    std::cout << "Leave ScanIterator.next()\n";
     return true;
 }
 
