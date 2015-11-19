@@ -150,6 +150,14 @@ public class ScanQuery implements Serializable {
         return this.aggregations.size() > 0;
     }
 
+    /**
+     * creates a mapping from column indexes to predicate lists.
+     *
+     * Each predicate list contains predicate-index pairs where
+     * the index refers to the CNF clause a predicate is in.
+     *
+     * @return
+     */
     private Map<Short, List<Pair<Predicate, Byte>>> prepareSelectionSerialization() {
         Map<Short, List<Pair<Predicate, Byte>>> res = new TreeMap<>();
         byte pos = 0;
@@ -157,7 +165,7 @@ public class ScanQuery implements Serializable {
             int predicates = selection.numPredicates();
             for (int i = 0; i < predicates; ++i) {
                 short cId = selection.field(i);
-                List<Pair<Predicate, Byte>> list = new ArrayList<>();
+                List<Pair<Predicate, Byte>> list;
                 if (res.containsKey(cId)) {
                     list = res.get(cId);
                 } else {
@@ -172,11 +180,22 @@ public class ScanQuery implements Serializable {
         return res;
     }
 
+    /**
+     * given a mapping from indexes to predicate lists, determines the byte siye
+     * of a selection
+     *
+     * @param selectionMap
+     * @return
+     */
+
     private final long selctionSize(Map<Short, List<Pair<Predicate, Byte>>> selectionMap) {
+        // compare these comments to tellstore/util/ScanQuery.hpp!
+        // 4 4-byte values (num column, num conjuncts, partition key, partition value)
+        // 8 bytes for every column: 2 bytes colum id, 2 bytes number of predicates, 4 bytes padding
         long res = 16 + 8*selectionMap.size();
         for (Map.Entry<Short, List<Pair<Predicate, Byte>>> e : selectionMap.entrySet()) {
             for (Pair<Predicate, Byte> p : e.getValue()) {
-                res += 8;
+                res += 8;   // 1-byte type, 1-byte position, 2-byte data (or padding), 4-byte data (or padding)
                 PredicateType value = p.first.value;
                 switch (value.getType()) {
                     // Fields smaller than 64 bit can be stored inside the 8 byte allocated for the predicate
