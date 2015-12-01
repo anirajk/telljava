@@ -365,8 +365,8 @@ public class ScanQuery implements Serializable {
     /**
      * @return a result schema for the result, if it is a projection or aggregation
      */
-    final Schema getAggregationResultSchema() {
-        if (aggregations.size() < 0) {
+    public final Schema getAggregationResultSchema() {
+        if (aggregations.size() > 0) {
             Schema result = new Schema();
             Collections.sort(aggregations);
             for (Aggregation aggr: aggregations) {

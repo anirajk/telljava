@@ -44,9 +44,13 @@ public class Aggregation implements Serializable, Comparable<Aggregation> {
 
     public int compareTo (Aggregation o2) {
         Aggregation o1 = this;
-        if (o1.field == o2.field)
-            return ((Byte) o1.type.toUnderlying()).compareTo((Byte) o2.type.toUnderlying());
-        else
-            return ((Short) o1.field).compareTo((Short) o2.field);
+        if (o1.fieldType == o2.fieldType) {
+            if (o1.field == o2.field)
+                return ((Byte) o1.type.toUnderlying()).compareTo((Byte) o2.type.toUnderlying());
+            else
+                return ((Short) o1.field).compareTo((Short) o2.field);
+        } else {
+            return ((Short) o1.fieldType.toUnderlying()).compareTo((Short) o2.fieldType.toUnderlying());
+        }
     }
 }
