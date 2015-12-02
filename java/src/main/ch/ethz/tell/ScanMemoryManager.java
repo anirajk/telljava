@@ -20,15 +20,30 @@
  *     Kevin Bocksrocker <kevin.bocksrocker@gmail.com>
  *     Lucas Braun <braunl@inf.ethz.ch>
  */
-#pragma once
-#include <tellstore/ClientManager.hpp>
+package ch.ethz.tell;
 
-namespace telljava {
+public class ScanMemoryManager {
+    private long mImpl;
 
-struct ClientManager {
-    tell::store::ClientConfig mConfig;
-    tell::store::ClientManager<void> clientManager;
-    ClientManager(tell::store::ClientConfig&& config) : mConfig(std::move(config)), clientManager(mConfig) {}
-};
+    private native long createImpl(long clientManager, long chunkCount, long chunkLength);
 
-} // namespace telljava
+    public ScanMemoryManager(ClientManager clientManager, long chunkCount, long chunkLength) {
+        mImpl = createImpl(clientManager.getClientManagerPtr(), chunkCount, chunkLength);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        destroy();
+    }
+
+    private native void destroyImpl(long impl);
+    public final void destroy() {
+        if (mImpl == 0) return;
+        destroyImpl(mImpl);
+        mImpl = 0;
+    }
+
+    final long getPtr() {
+        return mImpl;
+    }
+}

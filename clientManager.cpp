@@ -41,11 +41,6 @@ jlong Java_ch_ethz_tell_ClientManager_getClientManagerPtr(JNIEnv*, jclass, jlong
     return reinterpret_cast<jlong>(&o->clientManager);
 }
 
-jlong Java_ch_ethz_tell_ClientManager_getScanMemoryManagerPtr(JNIEnv*, jclass, jlong impl) {
-    auto o = reinterpret_cast<ImplementationDetails*>(impl);
-    return reinterpret_cast<jlong>(o->scanMemoryManager.get());
-}
-
 jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
         jobject self,
         jstring commitManager,
@@ -59,7 +54,6 @@ jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
     config.commitManager = ClientConfig::parseCommitManager(cM);
     config.tellStore = ClientConfig::parseTellStore(tS);
     auto res = new ImplementationDetails(std::move(config));
-    res->scanMemoryManager = res->clientManager.allocateScanMemory(size_t(chunkCount), size_t(chunkSize));
     return reinterpret_cast<jlong>(res);
 }
 

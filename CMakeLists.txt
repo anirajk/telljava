@@ -30,13 +30,15 @@ add_jar(telljava
     java/src/main/ch/ethz/tell/Transaction.java
     java/src/main/ch/ethz/tell/Unsafe.java
     java/src/main/ch/ethz/tell/UnsafeException.java
+    java/src/main/ch/ethz/tell/ScanMemoryManager.java
     java/src/test/ch/ethz/tell/Runner.java
     VERSION 1.0)
 javah(telljava
     "ch.ethz.tell.ClientManager"
     "ch.ethz.tell.Schema"
     "ch.ethz.tell.Transaction"
-    "ch.ethz.tell.ScanIterator")
+    "ch.ethz.tell.ScanIterator"
+    "ch.ethz.tell.ScanMemoryManager")
 
 find_package(JNI REQUIRED)
 find_package(TellStore REQUIRED)
@@ -45,7 +47,8 @@ find_package(Crossbow REQUIRED)
 set(impl_SRCS
         schema.cpp
         clientManager.cpp
-        transaction.cpp)
+        transaction.cpp
+        ScanMemoryManager.cpp)
 
 add_library(telljavaimpl SHARED ${impl_SRCS})
 add_dependencies(telljavaimpl javah_telljava)

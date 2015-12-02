@@ -20,15 +20,21 @@
  *     Kevin Bocksrocker <kevin.bocksrocker@gmail.com>
  *     Lucas Braun <braunl@inf.ethz.ch>
  */
-#pragma once
+#include <ch_ethz_tell_ScanMemoryManager.h>
 #include <tellstore/ClientManager.hpp>
 
-namespace telljava {
+jlong Java_ch_ethz_tell_ScanMemoryManager_createImpl(JNIEnv*,
+        jobject,
+        jlong clientManagerImpl,
+        jlong chunkCount,
+        jlong chunkLength)
+{
+    auto impl = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerImpl);
+    return reinterpret_cast<jlong>(impl->allocateScanMemory(chunkCount, chunkLength).release());
+}
 
-struct ClientManager {
-    tell::store::ClientConfig mConfig;
-    tell::store::ClientManager<void> clientManager;
-    ClientManager(tell::store::ClientConfig&& config) : mConfig(std::move(config)), clientManager(mConfig) {}
-};
+void Java_ch_ethz_tell_ScanMemoryManager_destroyImpl(JNIEnv*, jobject, jlong impl) {
+    delete reinterpret_cast<tell::store::ScanMemoryManager*>(impl);
+}
 
-} // namespace telljava
+

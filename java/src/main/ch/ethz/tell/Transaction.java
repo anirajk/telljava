@@ -22,8 +22,6 @@
  */
 package ch.ethz.tell;
 
-import java.util.Arrays;
-
 public class Transaction {
     private long mImpl;
     
@@ -34,12 +32,12 @@ public class Transaction {
         mImpl = impl;
     }
 
-    public static Transaction startTransaction(ClientManager manager) {
-        return new Transaction(startTx(manager.getClientManagerPtr(), manager.getScanMemoryManagerPtr()));
+    public static Transaction startTransaction(ClientManager manager, ScanMemoryManager scanMemoryManager) {
+        return new Transaction(startTx(manager.getClientManagerPtr(), scanMemoryManager.getPtr()));
     }
 
-    public static Transaction startTransaction(long transactionId, ClientManager manager) {
-        return new Transaction(startTx(transactionId, manager.getClientManagerPtr(), manager.getScanMemoryManagerPtr()));
+    public static Transaction startTransaction(long transactionId, ClientManager manager, ScanMemoryManager scanMemoryManager) {
+        return new Transaction(startTx(transactionId, manager.getClientManagerPtr(), scanMemoryManager.getPtr()));
     }
 
     private static native boolean commit(long impl);

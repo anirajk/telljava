@@ -25,8 +25,9 @@ public class Runner {
         long chunkSize = 5120000L;
 
         // client params
-        ClientManager clientManager = new ClientManager(commitMng, tellStr, chunkCount, chunkSize);
-        Transaction trx = Transaction.startTransaction(clientManager);
+        ClientManager clientManager = new ClientManager(commitMng, tellStr);
+        ScanMemoryManager scanMemoryManager = new ScanMemoryManager(clientManager, chunkCount, chunkSize);
+        Transaction trx = Transaction.startTransaction(clientManager, scanMemoryManager);
         // query params
         short fieldPos = 0;
         ScanQuery query = new ScanQuery();
