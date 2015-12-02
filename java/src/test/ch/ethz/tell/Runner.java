@@ -27,9 +27,8 @@ public class Runner {
         // client params
         ClientManager clientManager = new ClientManager(commitMng, tellStr);
         ScanMemoryManager scanMemoryManager = new ScanMemoryManager(clientManager, chunkCount, chunkSize);
-        Transaction trx = Transaction.startTransaction(clientManager, scanMemoryManager);
+        Transaction trx = Transaction.startTransaction(clientManager);
         // query params
-        short fieldPos = 0;
         ScanQuery query = new ScanQuery();
 //        query.addProjection(fieldPos);
 //        ScanQuery.CNFClause clause = query.new CNFClause();
@@ -39,7 +38,7 @@ public class Runner {
         String tblName = "testTable";
 
         // query itself
-        ScanIterator scanIt = trx.scan(query, tblName);
+        ScanIterator scanIt = trx.scan(scanMemoryManager, query, tblName);
 
         Schema schema = new Schema();
         schema.addField(FieldType.INT, "number", true);

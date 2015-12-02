@@ -25,19 +25,19 @@ package ch.ethz.tell;
 public class Transaction {
     private long mImpl;
     
-    private static native long startTx(long clientManager, long scanMemoryManager);
-    private static native long startTx(long transactionId, long clientManager, long scanMemoryManager);
+    private static native long startTx(long clientManager);
+    private static native long startTx(long transactionId, long clientManager);
 
     private Transaction(long impl) {
         mImpl = impl;
     }
 
-    public static Transaction startTransaction(ClientManager manager, ScanMemoryManager scanMemoryManager) {
-        return new Transaction(startTx(manager.getClientManagerPtr(), scanMemoryManager.getPtr()));
+    public static Transaction startTransaction(ClientManager manager) {
+        return new Transaction(startTx(manager.getClientManagerPtr()));
     }
 
-    public static Transaction startTransaction(long transactionId, ClientManager manager, ScanMemoryManager scanMemoryManager) {
-        return new Transaction(startTx(transactionId, manager.getClientManagerPtr(), scanMemoryManager.getPtr()));
+    public static Transaction startTransaction(long transactionId, ClientManager manager) {
+        return new Transaction(startTx(transactionId, manager.getClientManagerPtr()));
     }
 
     private static native boolean commit(long impl);
@@ -56,6 +56,7 @@ public class Transaction {
     }
 
     private static native void startScan(long impl,
+                                         long scanMemoryManager,
                                          String tableName,
                                          byte queryType,
                                          long selectionLength,
@@ -70,7 +71,7 @@ public class Transaction {
     }
 
     
-    public ScanIterator scan(ScanQuery scanQuery, String tableName)
+    public ScanIterator scan(ScanMemoryManager scanMemoryManager, ScanQuery scanQuery, String tableName)
     {
         Pair<Long, Long> selection = scanQuery.serializeSelection();
         byte queryType = ScanQuery.QueryType.FULL.toUnderlying();
@@ -91,7 +92,7 @@ public class Transaction {
             query = aggregation.second;
         }
 
-        startScan(mImpl, tableName, queryType, selection.first, selection.second, queryLength, query);
+        startScan(mImpl, scanMemoryManager.getPtr(), tableName, queryType, selection.first, selection.second, queryLength, query);
 
         sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
         unsafe.freeMemory(selection.second);

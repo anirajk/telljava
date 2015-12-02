@@ -53,11 +53,9 @@ struct ScanArgs {
 struct ImplementationDetails {
     tell::store::SingleTransactionRunner<void> txRunner;
     std::atomic<TxState> state;
-    tell::store::ScanMemoryManager& scanMemoryManager;
-    ImplementationDetails(tell::store::ClientManager<void>& clientManager, tell::store::ScanMemoryManager& scanMemoryManager)
+    ImplementationDetails(tell::store::ClientManager<void>& clientManager)
         : txRunner(clientManager)
         , state(TxState::Initial)
-        , scanMemoryManager(scanMemoryManager)
         , snapshot(nullptr)
         , chunk(std::make_tuple(nullptr, nullptr))
         , schema(nullptr)
@@ -67,6 +65,7 @@ struct ImplementationDetails {
     std::tuple<const char*, const char*> chunk;
     crossbow::string tableName;
     std::unique_ptr<tell::store::Schema> schema;
+    tell::store::ScanMemoryManager* scanMemoryManager = nullptr;
     void run(tell::store::ClientHandle& handle) {
         snapshot = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
         runTx(handle);
@@ -76,7 +75,7 @@ struct ImplementationDetails {
         snapshot = SnapshotDescriptor::create(0, baseVersion, baseVersion, nullptr);
         runTx(handle);
     }
-    void scan(tell::store::ClientHandle& handle) {
+    void scan(tell::store::ClientHandle& handle, tell::store::ScanMemoryManager& scanMemoryManager) {
         auto tableResp = handle.getTable(scanArgs.tableName);
         auto table = tableResp->get();
         auto analyticalSnapshot = tell::store::ClientHandle::createAnalyticalSnapshot(snapshot->lowestActiveVersion(),
@@ -113,7 +112,7 @@ struct ImplementationDetails {
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
                     std::terminate();
                 case TxState::Scan:
-                    scan(handle);
+                    scan(handle, *scanMemoryManager);
                     break;
                 case TxState::ScanDone:
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
@@ -163,9 +162,9 @@ jlong Java_ch_ethz_tell_ScanIterator_length(JNIEnv*, jclass, jlong ptr) {
     return reinterpret_cast<jlong>(std::get<1>(chunk) - std::get<0>(chunk));
 }
 
-jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong clientManagerPtr, jlong scanMemoryManager) {
+jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong clientManagerPtr) {
     auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
-    auto impl = new ImplementationDetails{ *clientManager, *reinterpret_cast<tell::store::ScanMemoryManager*>(scanMemoryManager) };
+    auto impl = new ImplementationDetails{ *clientManager };
     impl->txRunner.execute([impl](tell::store::ClientHandle& handle){
         impl->run(handle);
     });
@@ -173,9 +172,9 @@ jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong clientMan
     return reinterpret_cast<jlong>(impl);
 }
 
-jlong Java_ch_ethz_tell_Transaction_startTx__JJJ(JNIEnv*, jclass, jlong txId, jlong clientManagerPtr, jlong scanMemoryManager) {
+jlong Java_ch_ethz_tell_Transaction_startTx__JJJ(JNIEnv*, jclass, jlong txId, jlong clientManagerPtr) {
     auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
-    auto impl = new ImplementationDetails{ *clientManager, *reinterpret_cast<tell::store::ScanMemoryManager*>(scanMemoryManager) };
+    auto impl = new ImplementationDetails{ *clientManager };
     impl->txRunner.execute([impl, txId](tell::store::ClientHandle& handle){
         impl->run(txId, handle);
     });
@@ -208,6 +207,7 @@ void Java_ch_ethz_tell_Transaction_abort(JNIEnv*, jclass, jlong ptr) {
 void Java_ch_ethz_tell_Transaction_startScan(JNIEnv* env,
         jclass,
         jlong ptr,
+        jlong scanMemoryManager,
         jstring tableName,
         jbyte queryType,
         jlong selectionLength,
@@ -216,6 +216,7 @@ void Java_ch_ethz_tell_Transaction_startScan(JNIEnv* env,
         jlong query)
 {
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
+    impl->scanMemoryManager = reinterpret_cast<tell::store::ScanMemoryManager*>(scanMemoryManager);
     ScanArgs& args = impl->scanArgs;
     args.tableName = to_string(env, tableName);
     args.queryType = crossbow::from_underlying<tell::store::ScanQueryType>(uint8_t(queryType));
