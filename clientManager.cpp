@@ -44,9 +44,7 @@ jlong Java_ch_ethz_tell_ClientManager_getClientManagerPtr(JNIEnv*, jclass, jlong
 jlong Java_ch_ethz_tell_ClientManager_init(JNIEnv* env,
         jobject self,
         jstring commitManager,
-        jstring tellStore,
-        jlong chunkCount,
-        jlong chunkSize)
+        jstring tellStore)
 {
     auto cM = to_string(env, commitManager);
     auto tS = to_string(env, tellStore);
