@@ -71,7 +71,7 @@ public class Transaction {
     }
 
     
-    public ScanIterator scan(ScanMemoryManager scanMemoryManager, ScanQuery scanQuery, String tableName)
+    public ScanIterator scan(ScanMemoryManager scanMemoryManager, ScanQuery scanQuery)
     {
         Pair<Long, Long> selection = scanQuery.serializeSelection();
         byte queryType = ScanQuery.QueryType.FULL.toUnderlying();
@@ -92,7 +92,7 @@ public class Transaction {
             query = aggregation.second;
         }
 
-        startScan(mImpl, scanMemoryManager.getPtr(), tableName, queryType, selection.first, selection.second, queryLength, query);
+        startScan(mImpl, scanMemoryManager.getPtr(), scanQuery.getTableName(), queryType, selection.first, selection.second, queryLength, query);
 
         sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
         unsafe.freeMemory(selection.second);

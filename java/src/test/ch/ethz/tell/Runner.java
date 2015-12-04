@@ -29,16 +29,16 @@ public class Runner {
         ScanMemoryManager scanMemoryManager = new ScanMemoryManager(clientManager, chunkCount, chunkSize);
         Transaction trx = Transaction.startTransaction(clientManager);
         // query params
-        ScanQuery query = new ScanQuery();
+        String tblName = "testTable";
+        ScanQuery query = new ScanQuery(tblName);
 //        query.addProjection(fieldPos);
 //        ScanQuery.CNFClause clause = query.new CNFClause();
 //        clause.addPredicate(ScanQuery.CmpType.GREATER, fieldPos, PredicateType.create(0));
 //        query.addSelection(clause);
 
-        String tblName = "testTable";
 
         // query itself
-        ScanIterator scanIt = trx.scan(scanMemoryManager, query, tblName);
+        ScanIterator scanIt = trx.scan(scanMemoryManager, query);
 
         Schema schema = new Schema();
         schema.addField(FieldType.INT, "number", true);

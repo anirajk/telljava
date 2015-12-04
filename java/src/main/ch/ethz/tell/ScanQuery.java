@@ -91,9 +91,10 @@ public class ScanQuery implements Serializable {
     private List<CNFClause> selections;
     private List<Short> projections;
     private List<Aggregation> aggregations;
+    private final String tableName;
 
-    public ScanQuery() {
-        this(0, 0);
+    public ScanQuery(String tableName) {
+        this(tableName, 0);
     }
 
     /**
@@ -104,17 +105,19 @@ public class ScanQuery implements Serializable {
      * @param partitionKey the number of (Spark-) partitions to be scanned
      * @param partitionValue the partition index to look for
      */
-    public ScanQuery(int partitionKey, int partitionValue) {
+    public ScanQuery(String tableName, int partitionKey) {
+        this.tableName = tableName;
         this.partitionKey = partitionKey;
-        this.partitionValue = partitionValue;
+        this.partitionValue = 0;
         this.selections = new ArrayList<>();
         this.projections = new ArrayList<>();
         this.aggregations = new ArrayList<>();
     }
 
-    public ScanQuery(int partitionKey, int partitionValue, ScanQuery other) {
-        this.partitionKey = partitionKey;
+    public ScanQuery(int partitionValue, ScanQuery other) {
+        this.partitionKey = other.partitionKey;
         this.partitionValue = partitionValue;
+        this.tableName = other.tableName;
         this.selections = other.selections;
         this.projections = other.projections;
         this.aggregations = other.aggregations;
@@ -148,6 +151,10 @@ public class ScanQuery implements Serializable {
 
     public boolean isAggregation() {
         return this.aggregations.size() > 0;
+    }
+
+    public final String getTableName() {
+        return tableName;
     }
 
     /**
