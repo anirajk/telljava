@@ -162,7 +162,7 @@ jlong Java_ch_ethz_tell_ScanIterator_length(JNIEnv*, jclass, jlong ptr) {
     return reinterpret_cast<jlong>(std::get<1>(chunk) - std::get<0>(chunk));
 }
 
-jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong clientManagerPtr) {
+jlong Java_ch_ethz_tell_Transaction_startTx__J(JNIEnv*, jclass, jlong clientManagerPtr) {
     auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
     auto impl = new ImplementationDetails{ *clientManager };
     impl->txRunner.execute([impl](tell::store::ClientHandle& handle){
@@ -172,7 +172,7 @@ jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong clientMan
     return reinterpret_cast<jlong>(impl);
 }
 
-jlong Java_ch_ethz_tell_Transaction_startTx__JJJ(JNIEnv*, jclass, jlong txId, jlong clientManagerPtr) {
+jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong txId, jlong clientManagerPtr) {
     auto clientManager = reinterpret_cast<tell::store::ClientManager<void>*>(clientManagerPtr);
     auto impl = new ImplementationDetails{ *clientManager };
     impl->txRunner.execute([impl, txId](tell::store::ClientHandle& handle){
