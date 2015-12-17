@@ -89,7 +89,7 @@ public class ScanQuery implements Serializable {
     private int partitionKey;
     private int partitionValue;
     private List<CNFClause> selections;
-    private List<Short> projections;
+    private List<Projection> projections;
     private List<Aggregation> aggregations;
     private final String tableName;
 
@@ -127,15 +127,15 @@ public class ScanQuery implements Serializable {
         selections.add(clause);
     }
 
-    public boolean addProjection(short field) {
+    public boolean addProjection(Projection projection) {
         if (this.aggregations.size() > 0)     // we cannot have aggregations and projections at the same time!
             return false;
-        projections.add(field);
+        projections.add(projection);
         return true;
     }
 
-    public boolean addAggregation(AggrType type, short field, String name, FieldType fieldType) {
-        return addAggregation(new Aggregation(type, field, name, fieldType));
+    public boolean addProjection(short fieldIndex, String name, Field.FieldType fieldType, boolean nullable) {
+        return addProjection(new Projection(fieldIndex, name, fieldType, nullable));
     }
 
     public boolean addAggregation(Aggregation aggregation) {
@@ -143,6 +143,10 @@ public class ScanQuery implements Serializable {
             return false;
         aggregations.add(aggregation);
         return true;
+    }
+
+    public boolean addAggregation(AggrType type, short field, String name, FieldType fieldType) {
+        return addAggregation(new Aggregation(type, field, name, fieldType));
     }
 
     public boolean isProjection() {
@@ -188,14 +192,14 @@ public class ScanQuery implements Serializable {
     }
 
     /**
-     * given a mapping from indexes to predicate lists, determines the byte siye
+     * given a mapping from indexes to predicate lists, determines the byte size
      * of a selection
      *
      * @param selectionMap
      * @return
      */
 
-    private final long selctionSize(Map<Short, List<Pair<Predicate, Byte>>> selectionMap) {
+    private final long selectionSize(Map<Short, List<Pair<Predicate, Byte>>> selectionMap) {
         // compare these comments to tellstore/util/ScanQuery.hpp!
         // 4 4-byte values (num column, num conjuncts, partition key, partition value)
         // 8 bytes for every column: 2 bytes colum id, 2 bytes number of predicates, 4 bytes padding
@@ -242,7 +246,7 @@ public class ScanQuery implements Serializable {
     final Pair<Long, Long> serializeSelection() {
         Map<Short, List<Pair<Predicate, Byte>>> selectionMap = prepareSelectionSerialization();
         sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
-        long size = this.selctionSize(selectionMap);
+        long size = this.selectionSize(selectionMap);
         long res = unsafe.allocateMemory(size);
         unsafe.putInt(res, selectionMap.size());
         unsafe.putInt(res + 4, selections.size());
@@ -334,8 +338,8 @@ public class ScanQuery implements Serializable {
         long res = unsafe.allocateMemory(size);
         try {
             int i = 0;
-            for (Short s: this.projections) {
-                unsafe.putShort(res + i, s);
+            for (Projection projection: this.projections) {
+                unsafe.putShort(res + i, projection.fieldIndex);
                 i += 2;
             }
             return new Pair<Long, Long>(size, res);
@@ -358,7 +362,7 @@ public class ScanQuery implements Serializable {
         try {
             int i = 0;
             for (Aggregation aggr: this.aggregations) {
-                unsafe.putShort(res + i, aggr.field);
+                unsafe.putShort(res + i, aggr.fieldIndex);
                 unsafe.putShort(res + i + 2, aggr.type.toUnderlying());
                 i += 4;
             }
@@ -370,9 +374,24 @@ public class ScanQuery implements Serializable {
     }
 
     /**
-     * @return a result schema for the result, if it is a projection or aggregation
+     * @return a result schema for the result, if it is a projection
      */
-    public final Schema getAggregationResultSchema() {
+    private final Schema getProjectionResultSchema() {
+        if (projections.size() > 0) {
+            Schema result = new Schema();
+            Collections.sort(projections);
+            for (Projection projection: projections) {
+                result.addField(projection.fieldType, projection.name, projection.nullable);
+            }
+            return result;
+        }
+        throw new RuntimeException("no projections to create result schema for!");
+    }
+
+    /**
+     * @return a result schema for the result, if it is an aggregation
+     */
+    private final Schema getAggregationResultSchema() {
         if (aggregations.size() > 0) {
             Schema result = new Schema();
             Collections.sort(aggregations);
@@ -381,7 +400,18 @@ public class ScanQuery implements Serializable {
             }
             return result;
         }
-        throw new RuntimeException("can only get result schema for aggregation!");
+        throw new RuntimeException("no aggregations to create result schema for!");
+    }
+
+    public final Schema getResultSchema() {
+        if (aggregations.size() > 0) {
+            return getAggregationResultSchema();
+        } else if (projections.size() > 0) {
+            return getProjectionResultSchema();
+        } else {
+            throw new RuntimeException("no aggregations and projections on this query object!" +
+                    " Please use the source schema as result schema!");
+        }
     }
 }
 

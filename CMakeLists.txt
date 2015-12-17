@@ -25,6 +25,7 @@ add_jar(telljava
     java/src/main/ch/ethz/tell/CNFClause.java
     java/src/main/ch/ethz/tell/Predicate.java
     java/src/main/ch/ethz/tell/Aggregation.java
+    java/src/main/ch/ethz/tell/Projection.java
     java/src/main/ch/ethz/tell/Schema.java
     java/src/main/ch/ethz/tell/Field.java
     java/src/main/ch/ethz/tell/Transaction.java

@@ -30,25 +30,25 @@ import ch.ethz.tell.Field.FieldType;
 public class Aggregation implements Serializable, Comparable<Aggregation> {
     private static final long serialVersionUID = 7526472295622776150L;
 
-    public Aggregation (AggrType type, short field, String name, FieldType fieldType) {
+    public Aggregation (AggrType type, short fieldIndex, String name, FieldType fieldType) {
         this.type = type;
-        this.field = field;
+        this.fieldIndex = fieldIndex;
         this.name = name;
         this.fieldType = fieldType;
     }
 
     public AggrType type;
-    public short field;
-    public String name; // name with which you will find the aggregation in the result
+    public short fieldIndex; // index within source schema
+    public String name; // name with which you will find the aggregation in the result schema
     public FieldType fieldType; // type of the resulting aggregation
 
     public int compareTo (Aggregation o2) {
         Aggregation o1 = this;
         if (o1.fieldType == o2.fieldType) {
-            if (o1.field == o2.field)
+            if (o1.fieldIndex == o2.fieldIndex)
                 return ((Byte) o1.type.toUnderlying()).compareTo((Byte) o2.type.toUnderlying());
             else
-                return ((Short) o1.field).compareTo((Short) o2.field);
+                return ((Short) o1.fieldIndex).compareTo((Short) o2.fieldIndex);
         } else {
             return ((Short) o1.fieldType.toUnderlying()).compareTo((Short) o2.fieldType.toUnderlying());
         }
