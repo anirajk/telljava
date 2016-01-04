@@ -37,16 +37,18 @@ public class ScanQuery implements Serializable {
     private static final long serialVersionUID = 7526472295622776147L;
 
     public enum CmpType {
-        EQUAL           ((byte)1),
-        NOT_EQUAL       ((byte)2),
-        LESS            ((byte)3),
-        LESS_EQUAL      ((byte)4),
-        GREATER         ((byte)5),
-        GREATER_EQUAL   ((byte)6),
-        LIKE            ((byte)7),
-        NOT_LIKE        ((byte)8),
-        IS_NULL         ((byte)9),
-        IS_NOT_NULL     ((byte)10);
+        EQUAL               ((byte)1),
+        NOT_EQUAL           ((byte)2),
+        LESS                ((byte)3),
+        LESS_EQUAL          ((byte)4),
+        GREATER             ((byte)5),
+        GREATER_EQUAL       ((byte)6),
+        PREFIX_LIKE         ((byte)7),
+        PREFIX_NOT_LIKE     ((byte)8),
+        POSTFIX_LIKE        ((byte)9),
+        POSTFIX_NOT_LIKE    ((byte)10),
+        IS_NULL             ((byte)11),
+        IS_NOT_NULL         ((byte)12);
         private byte value;
 
         CmpType(byte value) {
@@ -94,7 +96,7 @@ public class ScanQuery implements Serializable {
     private final String tableName;
 
     public ScanQuery(String tableName) {
-        this(tableName, 0);
+        this(tableName, 0, 0);
     }
 
     /**
@@ -105,10 +107,10 @@ public class ScanQuery implements Serializable {
      * @param partitionKey the number of (Spark-) partitions to be scanned
      * @param partitionValue the partition index to look for
      */
-    public ScanQuery(String tableName, int partitionKey) {
+    public ScanQuery(String tableName, int partitionKey, int partitionValue) {
         this.tableName = tableName;
         this.partitionKey = partitionKey;
-        this.partitionValue = 0;
+        this.partitionValue = partitionValue;
         this.selections = new ArrayList<>();
         this.projections = new ArrayList<>();
         this.aggregations = new ArrayList<>();
@@ -134,8 +136,8 @@ public class ScanQuery implements Serializable {
         return true;
     }
 
-    public boolean addProjection(short fieldIndex, String name, Field.FieldType fieldType, boolean nullable) {
-        return addProjection(new Projection(fieldIndex, name, fieldType, nullable));
+    public boolean addProjection(short fieldIndex, String name, Field.FieldType fieldType, boolean notNull) {
+        return addProjection(new Projection(fieldIndex, name, fieldType, notNull));
     }
 
     public boolean addAggregation(Aggregation aggregation) {
@@ -381,7 +383,7 @@ public class ScanQuery implements Serializable {
             Schema result = new Schema();
             Collections.sort(projections);
             for (Projection projection: projections) {
-                result.addField(projection.fieldType, projection.name, projection.nullable);
+                result.addField(projection.fieldType, projection.name, projection.notNull);
             }
             return result;
         }
@@ -396,7 +398,7 @@ public class ScanQuery implements Serializable {
             Schema result = new Schema();
             Collections.sort(aggregations);
             for (Aggregation aggr: aggregations) {
-                result.addField(aggr.fieldType, aggr.name, true);
+                result.addField(aggr.fieldType, aggr.name, aggr.notNull);
             }
             return result;
         }

@@ -53,26 +53,32 @@ struct ScanArgs {
 struct ImplementationDetails {
     tell::store::SingleTransactionRunner<void> txRunner;
     std::atomic<TxState> state;
+
+    std::unique_ptr<tell::commitmanager::SnapshotDescriptor> snapshot;
+    bool shared;
+    tell::store::ScanMemoryManager* scanMemoryManager;
+
+    crossbow::string tableName;
+
+    ScanArgs scanArgs;
+    std::tuple<const char*, const char*> chunk;
+    std::unique_ptr<tell::store::Schema> schema;
+
     ImplementationDetails(tell::store::ClientManager<void>& clientManager)
         : txRunner(clientManager)
         , state(TxState::Initial)
-        , snapshot(nullptr)
+        , shared(false)
         , chunk(std::make_tuple(nullptr, nullptr))
-        , schema(nullptr)
     {}
-    ScanArgs scanArgs;
-    std::unique_ptr<tell::commitmanager::SnapshotDescriptor> snapshot;
-    std::tuple<const char*, const char*> chunk;
-    crossbow::string tableName;
-    std::unique_ptr<tell::store::Schema> schema;
-    tell::store::ScanMemoryManager* scanMemoryManager = nullptr;
     void run(tell::store::ClientHandle& handle) {
         snapshot = handle.startTransaction(tell::store::TransactionType::ANALYTICAL);
+        shared = false;
         runTx(handle);
     }
     void run(uint64_t baseVersion, tell::store::ClientHandle& handle) {
         using namespace tell::commitmanager;
         snapshot = SnapshotDescriptor::create(0, baseVersion, baseVersion, nullptr);
+        shared = true;
         runTx(handle);
     }
     void scan(tell::store::ClientHandle& handle, tell::store::ScanMemoryManager& scanMemoryManager) {
@@ -145,10 +151,7 @@ jboolean Java_ch_ethz_tell_ScanIterator_next(JNIEnv* env, jclass, jlong ptr) {
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
     impl->txRunner.unblock();
     impl->txRunner.wait();
-    if (impl->state == TxState::ScanDone) {
-        return false;
-    }
-    return true;
+    return (impl->state != TxState::ScanDone);
 }
 
 jlong Java_ch_ethz_tell_ScanIterator_address(JNIEnv*, jclass, jlong ptr) {
@@ -184,7 +187,7 @@ jlong Java_ch_ethz_tell_Transaction_startTx__JJ(JNIEnv*, jclass, jlong txId, jlo
 
 jboolean Java_ch_ethz_tell_Transaction_commit(JNIEnv*, jclass, jlong ptr) {
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
-    impl->state = TxState::Commit;
+    impl->state = impl->shared ? TxState::Done : TxState::Commit;
     impl->txRunner.unblock();
     impl->txRunner.wait();
     delete impl;
@@ -198,7 +201,7 @@ jlong Java_ch_ethz_tell_Transaction_getTransactionId(JNIEnv *, jclass, jlong ptr
 
 void Java_ch_ethz_tell_Transaction_abort(JNIEnv*, jclass, jlong ptr) {
     auto impl = reinterpret_cast<ImplementationDetails*>(ptr);
-    impl->state = TxState::Abort;
+    impl->state = impl->shared ? TxState::Done : TxState::Abort;
     impl->txRunner.unblock();
     impl->txRunner.wait();
     delete impl;

@@ -35,22 +35,30 @@ public class Aggregation implements Serializable, Comparable<Aggregation> {
         this.fieldIndex = fieldIndex;
         this.name = name;
         this.fieldType = fieldType;
+
+        switch (type) {
+            case MIN:
+            case MAX:
+            case SUM:
+                this.notNull = false;
+                break;
+
+            case CNT:
+                this.notNull = true;
+                break;
+
+            default:
+                throw new RuntimeException("Unknown Aggregation Type");
+        }
     }
 
     public AggrType type;
     public short fieldIndex; // index within source schema
     public String name; // name with which you will find the aggregation in the result schema
     public FieldType fieldType; // type of the resulting aggregation
+    public boolean notNull;
 
-    public int compareTo (Aggregation o2) {
-        Aggregation o1 = this;
-        if (o1.fieldType == o2.fieldType) {
-            if (o1.fieldIndex == o2.fieldIndex)
-                return ((Byte) o1.type.toUnderlying()).compareTo((Byte) o2.type.toUnderlying());
-            else
-                return ((Short) o1.fieldIndex).compareTo((Short) o2.fieldIndex);
-        } else {
-            return ((Short) o1.fieldType.toUnderlying()).compareTo((Short) o2.fieldType.toUnderlying());
-        }
+    public int compareTo (Aggregation other) {
+        return Short.compare(this.fieldIndex, other.fieldIndex);
     }
 }

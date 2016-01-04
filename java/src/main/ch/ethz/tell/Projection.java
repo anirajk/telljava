@@ -28,20 +28,19 @@ import java.io.Serializable;
 public class Projection implements Serializable, Comparable<Projection> {
     private static final long serialVersionUID = 7526472295622776150L;
 
-    public Projection (short fieldIndex, String name, Field.FieldType fieldType, boolean nullable) {
+    public Projection (short fieldIndex, String name, Field.FieldType fieldType, boolean notNull) {
         this.fieldIndex = fieldIndex;
         this.name = name;
         this.fieldType = fieldType;
-        this.nullable = nullable;
+        this.notNull = notNull;
     }
 
     public short fieldIndex;  // field index in source scheme
     public String name;       // name with which you will find the projected column in the result scheme
     public Field.FieldType fieldType; // type of the resulting projection (equal to the type in the source scheme)
-    public boolean nullable;        // can this field be null?
+    public boolean notNull;        // can this field be null?
 
-    public int compareTo (Projection o2) {
-        Projection o1 = this;
-        return ((Short) o1.fieldIndex).compareTo((Short) o2.fieldIndex);
+    public int compareTo (Projection other) {
+        return Short.compare(this.fieldIndex, other.fieldIndex);
     }
 }

@@ -31,7 +31,7 @@ public class Field implements Serializable{
     public short index;
     public FieldType fieldType;
     public String fieldName;
-    public boolean nullable;
+    public boolean notNull;
 
     public enum FieldType {
         NOTYPE((short) 0),

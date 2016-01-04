@@ -87,7 +87,7 @@ public class Schema {
         result.index = idOfImpl(mImpl, columnName);
         result.fieldName = columnName;
         result.fieldType = FieldType.fromUnderlying(typeOfImpl(mImpl, columnName));
-        result.nullable = nullabiltyOfImpl(mImpl, columnName);
+        result.notNull = nullabiltyOfImpl(mImpl, columnName);
         return result;
     }
 

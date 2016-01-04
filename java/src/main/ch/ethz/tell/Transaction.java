@@ -24,7 +24,7 @@ package ch.ethz.tell;
 
 public class Transaction {
     private long mImpl;
-    
+
     private static native long startTx(long clientManager);
     private static native long startTx(long transactionId, long clientManager);
 
@@ -40,14 +40,28 @@ public class Transaction {
         return new Transaction(startTx(transactionId, manager.getClientManagerPtr()));
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        abort();
+    }
+
     private static native boolean commit(long impl);
     public final boolean commit() {
-        return commit(mImpl);
+        if (mImpl == 0) {
+            return false;
+        }
+        boolean res = commit(mImpl);
+        mImpl = 0;
+        return res;
     }
 
     private static native void abort(long impl);
     public final void abort() {
+        if (mImpl == 0) {
+            return;
+        }
         abort(mImpl);
+        mImpl = 0;
     }
 
     private static native long getTransactionId(long impl);
