@@ -88,6 +88,7 @@ public class ScanQuery implements Serializable {
         }
     }
 
+    private int partitionShift;
     private int partitionKey;
     private int partitionValue;
     private List<CNFClause> selections;
@@ -96,7 +97,7 @@ public class ScanQuery implements Serializable {
     private final String tableName;
 
     public ScanQuery(String tableName) {
-        this(tableName, 0, 0);
+        this(tableName, 0, 0, 0);
     }
 
     /**
@@ -104,25 +105,18 @@ public class ScanQuery implements Serializable {
      * (primary-key mod partition-key) == partition-value
      * are returned.
      *
+     * @param partitionShift Number of bits the key should be shifted before calculating partition
      * @param partitionKey the number of (Spark-) partitions to be scanned
      * @param partitionValue the partition index to look for
      */
-    public ScanQuery(String tableName, int partitionKey, int partitionValue) {
+    public ScanQuery(String tableName, int partitionShift, int partitionKey, int partitionValue) {
         this.tableName = tableName;
+        this.partitionShift= partitionShift;
         this.partitionKey = partitionKey;
         this.partitionValue = partitionValue;
         this.selections = new ArrayList<>();
         this.projections = new ArrayList<>();
         this.aggregations = new ArrayList<>();
-    }
-
-    public ScanQuery(int partitionValue, ScanQuery other) {
-        this.partitionKey = other.partitionKey;
-        this.partitionValue = partitionValue;
-        this.tableName = other.tableName;
-        this.selections = other.selections;
-        this.projections = other.projections;
-        this.aggregations = other.aggregations;
     }
 
     public void addSelection(CNFClause clause) {
