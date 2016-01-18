@@ -63,6 +63,9 @@ public class Schema {
         return res;
     }
 
+    private final native int fieldCount(long self);
+    public final int fieldCount() { return fieldCount(mImpl); }
+
     private final native int[] fixedSizeFieldsImpl(long self);
     public final FieldType[] fixedSizeFields() {
         return fromUnderlyings(fixedSizeFieldsImpl(mImpl));

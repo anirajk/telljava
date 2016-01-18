@@ -46,6 +46,11 @@ jboolean Java_ch_ethz_tell_Schema_allNotNullImpl(JNIEnv*, jobject, jlong self) {
     return s->allNotNull();
 }
 
+jint Java_ch_ethz_tell_Schema_fieldCount(JNIEnv* env, jobject, jlong self) {
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    return s->fieldCount();
+}
+
 namespace {
 jintArray toIntArray(JNIEnv* env, const std::vector<tell::store::Field>& fields) {
     auto res = env->NewIntArray(fields.size());
