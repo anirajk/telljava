@@ -270,28 +270,36 @@ public class ScanQuery implements Serializable {
                         case Bool:
                             boolean v = data.value();
                             unsafe.putShort(res + offset, (short) (v ? 1 : 0));
-                            offset += 6;
+                            offset += 2;
+                            unsafe.setMemory(res + offset, 4, (byte) 0);
+                            offset += 4;
                             break;
                         case Short:
                             unsafe.putShort(res + offset, data.value());
-                            offset += 6;
+                            offset += 2;
+                            unsafe.setMemory(res + offset, 4, (byte) 0);
+                            offset += 4;
                             break;
                         case Int:
+                            unsafe.setMemory(res + offset, 2, (byte) 0);
                             offset += 2;
                             unsafe.putInt(res + offset, data.value());
                             offset += 4;
                             break;
                         case Long:
+                            unsafe.setMemory(res + offset, 6, (byte) 0);
                             offset += 6;
                             unsafe.putLong(res + offset, data.value());
                             offset += 8;
                             break;
                         case Float:
+                            unsafe.setMemory(res + offset, 2, (byte) 0);
                             offset += 2;
                             unsafe.putFloat(res + offset, data.value());
                             offset += 4;
                             break;
                         case Double:
+                            unsafe.setMemory(res + offset, 6, (byte) 0);
                             offset += 6;
                             unsafe.putDouble(res + offset, data.value());
                             offset += 8;
@@ -300,6 +308,7 @@ public class ScanQuery implements Serializable {
                             String str = data.value();
                             arr = str.getBytes(Charset.forName("UTF-8"));
                         case ByteArray:
+                            unsafe.setMemory(res + offset, 2, (byte) 0);
                             offset += 2;
                             if (arr == null) arr = data.value();
                             unsafe.putInt(res + offset, arr.length);
@@ -308,9 +317,11 @@ public class ScanQuery implements Serializable {
                                 unsafe.putByte(res + offset + i, arr[i]);
                             }
                             offset += arr.length;
+                            // padding
                             if (arr.length % 8 != 0) {
-                                // padding
-                                offset += (8 - (arr.length % 8));
+                                int padding = 8 - (arr.length % 8);
+                                unsafe.setMemory(res + offset, padding, (byte) 0);
+                                offset += padding;
                             }
                             break;
                     }
