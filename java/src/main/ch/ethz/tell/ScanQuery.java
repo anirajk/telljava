@@ -203,6 +203,9 @@ public class ScanQuery implements Serializable {
         for (Map.Entry<Short, List<Pair<Predicate, Byte>>> e : selectionMap.entrySet()) {
             for (Pair<Predicate, Byte> p : e.getValue()) {
                 res += 8;   // 1-byte type, 1-byte position, 2-byte data (or padding), 4-byte data (or padding)
+                if (p.first.type == CmpType.IS_NULL || p.first.type == CmpType.IS_NOT_NULL) {
+                    continue;
+                }
                 PredicateType value = p.first.value;
                 switch (value.getType()) {
                     // Fields smaller than 64 bit can be stored inside the 8 byte allocated for the predicate
@@ -264,6 +267,11 @@ public class ScanQuery implements Serializable {
                     offset += 1;
                     unsafe.putByte(res + offset, p.second);
                     offset += 1;
+                    if (p.first.type == CmpType.IS_NULL || p.first.type == CmpType.IS_NOT_NULL) {
+                        unsafe.setMemory(res + offset, 6, (byte) 0);
+                        offset += 6;
+                        continue;
+                    }
                     PredicateType data = p.first.value;
                     byte[] arr = null;
                     switch (data.getType()) {
