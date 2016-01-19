@@ -261,7 +261,9 @@ public class ScanQuery implements Serializable {
                 // Number of predicates for this column
                 short numPreds = (short) e.getValue().size();
                 unsafe.putShort(res + offset, numPreds);
-                offset += 6; // padding
+                offset += 2;
+                unsafe.setMemory(res + offset, 6, (byte) 0);
+                offset += 4;
                 for (Pair<Predicate, Byte> p : e.getValue()) {
                     unsafe.putByte(res + offset, p.first.type.toUnderlying());
                     offset += 1;
