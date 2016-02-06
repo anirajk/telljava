@@ -22,6 +22,8 @@
  */
 package ch.ethz.tell;
 
+import java.util.List;
+
 public class Transaction {
     private long mImpl;
 
@@ -78,6 +80,10 @@ public class Transaction {
                                          long queryLength,
                                          long query);
 
+    private native List<Table> getTablesImpl(long handle);
+    public final List<Table> getTables() {
+        return getTablesImpl(mImpl);
+    }
 
     private static native long schemaForTableImpl(long impl, String name);
     public Schema schemaForTable(String name) {

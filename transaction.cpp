@@ -38,6 +38,7 @@ enum class TxState {
     Done,
     Scan,
     ScanDone,
+    GetTables,
     GetSchemaByName
 };
 
@@ -63,6 +64,8 @@ struct ImplementationDetails {
     ScanArgs scanArgs;
     std::tuple<const char*, const char*> chunk;
     std::unique_ptr<tell::store::Schema> schema;
+
+    std::vector<tell::store::Table> tables;
 
     ImplementationDetails(tell::store::ClientManager<void>& clientManager)
         : txRunner(clientManager)
@@ -96,6 +99,12 @@ struct ImplementationDetails {
         }
         state = TxState::ScanDone;
     }
+
+    void getTables(tell::store::ClientHandle& handle) {
+        tables = handle.getTables()->get();
+        state = TxState::Initial;
+    }
+
     void openTable(tell::store::ClientHandle& handle) {
         auto res = handle.getTable(tableName);
         auto table = res->get();
@@ -123,6 +132,11 @@ struct ImplementationDetails {
                 case TxState::ScanDone:
                     std::cerr << "FATAL: invalid state in: " << __FILE__ << ':' << __LINE__ << std::endl;
                     std::terminate();
+
+                case TxState::GetTables: {
+                    getTables(handle);
+                } break;
+
                 case TxState::GetSchemaByName:
                     openTable(handle);
                     break;
@@ -232,4 +246,34 @@ void Java_ch_ethz_tell_Transaction_startScan(JNIEnv* env,
     impl->txRunner.wait();
 }
 
+jobject Java_ch_ethz_tell_Transaction_getTablesImpl(JNIEnv* env, jobject /* self */, jlong handle) {
+    auto impl = reinterpret_cast<ImplementationDetails*>(handle);
+    impl->state = TxState::GetTables;
+    impl->txRunner.unblock();
+    impl->txRunner.wait();
 
+    auto arrayListClass = env->FindClass("java/util/ArrayList");
+    auto arrayListCtor = env->GetMethodID(arrayListClass, "<init>", "()V");
+    auto arrayListAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
+    auto result = env->NewObject(arrayListClass, arrayListCtor);
+
+    auto schemaClass = env->FindClass("ch/ethz/tell/Schema");
+    auto schemaCtor = env->GetMethodID(schemaClass, "<init>", "(J)V");
+
+    auto tableClass = env->FindClass("ch/ethz/tell/Table");
+    auto tableCtor = env->GetMethodID(tableClass, "<init>", "(JLjava/lang/String;Lch/ethz/tell/Schema;)V");
+
+    for (auto& t : impl->tables) {
+        auto& tableNameImpl = t.tableName();
+        auto tableName = env->NewStringUTF(tableNameImpl.c_str());
+
+        auto schemaPtr = new tell::store::Schema(t.record().schema());
+        auto schema = env->NewObject(schemaClass, schemaCtor, schemaPtr);
+
+        auto table = env->NewObject(tableClass, tableCtor, t.tableId(), tableName, schema);
+        env->CallBooleanMethod(result, arrayListAdd, table);
+    }
+
+    impl->tables.clear();
+    return result;
+}

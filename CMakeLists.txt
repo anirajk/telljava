@@ -28,6 +28,7 @@ add_jar(telljava
     java/src/main/ch/ethz/tell/Projection.java
     java/src/main/ch/ethz/tell/Schema.java
     java/src/main/ch/ethz/tell/Field.java
+    java/src/main/ch/ethz/tell/Table.java
     java/src/main/ch/ethz/tell/Transaction.java
     java/src/main/ch/ethz/tell/Unsafe.java
     java/src/main/ch/ethz/tell/UnsafeException.java
