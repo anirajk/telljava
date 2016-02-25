@@ -63,6 +63,18 @@ jintArray toIntArray(JNIEnv* env, const std::vector<tell::store::Field>& fields)
 }
 
 }
+jobject JNICALL Java_ch_ethz_tell_Schema_get(JNIEnv *env, jclass, jlong self, jshort idx) {
+    auto s = reinterpret_cast<tell::store::Schema*>(self);
+    id_t id = id_t(idx);
+    const auto& field = (*s)[id];
+    auto cls = env->FindClass("ch/ethz/tell/Field");
+    auto constructor = env->GetMethodID(cls, "<init>", "(SSLjava/lang/String;Z)V");
+    env->NewStringUTF("");
+    return env->NewObject(cls, constructor, idx,
+            crossbow::to_underlying(field.type()),
+            env->NewStringUTF(field.name().c_str()),
+            field.isNotNull());
+}
 
 jintArray Java_ch_ethz_tell_Schema_fixedSizeFieldsImpl(JNIEnv* env, jobject, jlong self) {
     auto s = reinterpret_cast<tell::store::Schema*>(self);

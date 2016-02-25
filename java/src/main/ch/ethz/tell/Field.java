@@ -28,6 +28,20 @@ public class Field implements Serializable{
 
     private static final long serialVersionUID = 7526472295622776160L;
 
+    public Field(short index, short type, String name, boolean notNull) {
+        this.index = index;
+        this.fieldType = FieldType.fromUnderlying(type);
+        this.fieldName = name;
+        this.notNull = notNull;
+    }
+
+    public Field(short index, FieldType type, String name, boolean notNull) {
+        this.index = index;
+        this.fieldType = type;
+        this.fieldName = name;
+        this.notNull = notNull;
+    }
+
     public short index;
     public FieldType fieldType;
     public String fieldName;

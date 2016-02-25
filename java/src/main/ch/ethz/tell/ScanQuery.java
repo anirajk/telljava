@@ -100,6 +100,16 @@ public class ScanQuery implements Serializable {
         this(tableName, 0, 0, 0);
     }
 
+    public int getPartitionShift() {
+        return partitionShift;
+    }
+    public int getPartitionKey() {
+        return partitionKey;
+    }
+    public int getPartitionValue() {
+        return partitionValue;
+    }
+
     /**
      * creates a scan query object with partition key and partition value on primary key, which means all tuples with
      * (primary-key mod partition-key) == partition-value

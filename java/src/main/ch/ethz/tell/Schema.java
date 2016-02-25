@@ -45,7 +45,12 @@ public class Schema {
         destruct(mImpl);
     }
 
-    public final native boolean addFieldImpl(long self, short type, String fieldName, boolean notNull);
+    private static native Field get(long impl, short id);
+    public final Field get(short id) {
+        return get(mImpl, id);
+    }
+
+    private final native boolean addFieldImpl(long self, short type, String fieldName, boolean notNull);
     public final boolean addField(FieldType type, String fieldName, boolean notNull) {
         return addFieldImpl(mImpl, type.toUnderlying(), fieldName, notNull);
     }
@@ -86,12 +91,7 @@ public class Schema {
     private final native boolean nullabiltyOfImpl(long self, String columnName);
 
     public final Field getFieldByName(String columnName) {
-        Field result = new Field();
-        result.index = idOfImpl(mImpl, columnName);
-        result.fieldName = columnName;
-        result.fieldType = FieldType.fromUnderlying(typeOfImpl(mImpl, columnName));
-        result.notNull = nullabiltyOfImpl(mImpl, columnName);
-        return result;
+        return get(idOfImpl(mImpl, columnName));
     }
 
     private native final String[] getFieldNamesImpl(long self);
